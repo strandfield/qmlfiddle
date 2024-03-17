@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+      <file>assets/qtlogo.svg</file>
+    </qresource>
+    <qresource prefix="/qmlfiddle">
+      <file>main.qml</file>
+    </qresource>
+</RCC>
