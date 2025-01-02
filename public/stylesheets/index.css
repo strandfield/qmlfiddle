@@ -1,0 +1,42 @@
+/* Make the html body cover the entire (visual) viewport with no scroll bars. */
+html, body { padding: 0; margin: 0; overflow: hidden; height: 100% }
+
+#home-overlay {
+  height: 100%;
+  width: 100%;
+  z-index: 1000;
+  position: absolute;
+  background-color: #aaaaaa;
+}
+
+#viewport {
+  height: 100%;
+}
+
+#code {
+  overflow-y: scroll;
+}
+
+#screen {
+
+}
+
+.split {
+    display: flex;
+    flex-direction: row;
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+
+.cm-editor {
+    height: 100%;
+}
