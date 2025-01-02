@@ -1,5 +1,7 @@
 #include <QGuiApplication>
 
+#include <QQmlEngineExtensionPlugin>
+
 #include <QQuickView>
 
 #include <QQmlComponent>
@@ -16,6 +18,10 @@
 #include <emscripten/bind.h>
 
 #include <algorithm>
+
+// https://doc.qt.io/qt-6/qtplugin.html#Q_IMPORT_PLUGIN
+Q_IMPORT_QML_PLUGIN(QtQuickLayoutsPlugin)
+Q_IMPORT_QML_PLUGIN(QtQuickControls2Plugin)
 
 // Useful: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/index.html
 

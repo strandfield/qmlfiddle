@@ -4,7 +4,7 @@ project(qmlfiddle VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Qml Quick QuickLayouts QuickControls2)
 
 # https://doc.qt.io/qt-6/qt-standard-project-setup.html
 qt_standard_project_setup(REQUIRES 6.8)
@@ -24,8 +24,18 @@ qt_add_executable(qmlfiddle
 set_target_properties(qmlfiddle PROPERTIES QT_WASM_EXTRA_EXPORTED_METHODS "ccall,cwrap")
 
 target_link_libraries(qmlfiddle
-    PRIVATE Qt6::Quick
+    PRIVATE Qt6::Quick Qt6::QuickLayouts Qt6::QuickControls2
 )
+
+# https://doc.qt.io/qt-6/qt-import-plugins.html#static-plugins
+#qt_import_plugins(qmlfiddle INCLUDE Qt6::qquicklayoutsplugin Qt6::qtquickcontrols2plugin)
+
+#target_link_libraries(qmlfiddle
+#    PRIVATE Qt6::qquicklayoutsplugin Qt6::qtquickcontrols2plugin
+#)
+
+#https://doc.qt.io/qt-6/qt-import-qml-plugins.html
+qt6_import_qml_plugins(qmlfiddle)
 
 add_custom_command(TARGET qmlfiddle POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/qmlfiddle.js" "${CMAKE_CURRENT_LIST_DIR}/dist/qmlfiddle.js"
