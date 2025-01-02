@@ -4,10 +4,10 @@ project(qmlfiddle VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Quick)
 
 # https://doc.qt.io/qt-6/qt-standard-project-setup.html
-qt_standard_project_setup(REQUIRES 6.5)
+qt_standard_project_setup(REQUIRES 6.8)
 
 # Still needed even with qt_standard_project_setup().
 # See https://doc.qt.io/qt-6/resources.html
