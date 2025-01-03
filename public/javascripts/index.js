@@ -16,10 +16,22 @@ window.Split(['#screen', '#console'], {
     sizes: [75, 25],
 });
 
-/* WASM event handlers (called from C++) */
+function writeConsole(text) {
+    let out = document.getElementById("console");
+    let entry = document.createElement("DIV");
+    entry.innerText = text;
+    out.appendChild(entry);
+}
+
+function clearConsole() {
+    let out = document.getElementById("console");
+    out.innerHTML = '';
+}
+
+/* WASM event handlers */
 
 function onCurrentItemChanged() {
-    console.log("current item changed");
+    //console.log("current item changed");
 }
 
 function onLintComponentIsReady() {
@@ -29,20 +41,12 @@ function onLintComponentIsReady() {
   }, 16);
 }
 
-/* end */
-
 function recvMssg(text) {
-    console.log(`message received: ${text}`);
-    let out = document.getElementById("console");
-    let entry = document.createElement("DIV");
-    entry.innerText = text;
-    out.appendChild(entry);
+    //console.log(`message received: ${text}`);
+    writeConsole(text);
 }
-  
-function clearConsole() {
-    let out = document.getElementById("console");
-    out.innerHTML = '';
-}
+
+/* end */
 
 var qtInstance = null;
 var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
@@ -105,6 +109,8 @@ async function init()
         
         qtInstance = instance;
         qtInstance.qmlfiddle_setMessageHandler(recvMssg);
+        qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
+        qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
     } catch (e) {
         console.error(e);
         console.error(e.stack);

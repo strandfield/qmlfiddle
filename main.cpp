@@ -23,26 +23,6 @@
 Q_IMPORT_QML_PLUGIN(QtQuickLayoutsPlugin)
 Q_IMPORT_QML_PLUGIN(QtQuickControls2Plugin)
 
-// Useful: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/index.html
-
-EM_JS(void, notifyCurrentItemChange, (), {
-    if (onCurrentItemChanged) {
-        onCurrentItemChanged();
-    }
-})
-
-EM_JS(void, notifyLintComponentIsReady, (), {
-  if (onLintComponentIsReady) {
-    onLintComponentIsReady();
-  }
-})
-
-// EM_JS(void, sendMessage, (const char* text), {
-//   if (recvMssg) {
-//     recvMssg(text);
-//   }
-// })
-
 class Controller;
 static Controller *gController = nullptr;
 
@@ -196,6 +176,10 @@ public:
       }
     }
 
+public:
+    emscripten::val onCurrentItemChanged;
+  emscripten::val onLintComponentReady;
+
 protected Q_SLOTS:
     void onLintCompleted()
     {
@@ -207,7 +191,10 @@ protected Q_SLOTS:
 
       if (lint->component()->status() == QQmlComponent::Ready) {
         setLastLintComponent(lint->component());
-        notifyLintComponentIsReady();
+        if (!onLintComponentReady.isUndefined())
+        {
+          onLintComponentReady();
+        }
       }
 
       lint->deleteLater();
@@ -256,7 +243,10 @@ protected:
 
         component.completeCreate();
 
-        notifyCurrentItemChange();
+        if (!onCurrentItemChanged.isUndefined())
+        {
+          onCurrentItemChanged();
+        }
     }
 
 private:
@@ -296,6 +286,11 @@ void QmlSourceLint::start()
   m_component->setData(m_data, QUrl());
 }
 
+/*
+ * emscripten bindings
+ */
+
+// Useful: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/index.html
 
 extern "C" {
 
@@ -324,6 +319,19 @@ EMSCRIPTEN_KEEPALIVE void set_message_handler(const emscripten::val& handler)
   }
 }
 
+EMSCRIPTEN_KEEPALIVE void set_current_item_changed_handler(const emscripten::val& handler)
+{
+  if (gController) {
+    gController->onCurrentItemChanged = handler;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE void set_lint_ready_handler(const emscripten::val& handler)
+{
+  if (gController) {
+    gController->onLintComponentReady = handler;
+  }
+}
 
 } // extern "C"
 
@@ -332,7 +340,13 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("qmlfiddle_lintSource", &lint_source);
   emscripten::function("qmlfiddle_UseLastLintAsSource", &use_last_lint_as_source);
     emscripten::function("qmlfiddle_setMessageHandler", &set_message_handler);
+  emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
+    emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);
 }
+
+/*
+ * end
+ */
 
 int main(int argc, char *argv[])
 {
