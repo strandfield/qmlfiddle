@@ -12,6 +12,7 @@ function parseDiagnostics(text) {
 	return diagnostics;
 }
 
+// TODO: remove use of global variable "qtInstance"
 const qmlLinter = linter(view => {
 	if (!qtInstance) {
 		return [];

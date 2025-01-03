@@ -106,6 +106,7 @@ function SetDefaultDocument() {
 async function init()
 {
     hideConsole();
+    SetDefaultDocument();
 
     const overlay = document.querySelector('#screen-overlay');
     const spinner = document.querySelector('#qtspinner');
@@ -115,18 +116,9 @@ async function init()
     const showUi = (ui) => {
         if (ui == screen) {
             overlay.remove();
-            SetDefaultDocument();
         } 
         
         ui.style.display = 'block';
-
-        // [spinner, screen].forEach(element => element.style.display = 'none');
-        // if (screen === ui) {
-        //     screen.style.position = 'default';
-        //     overlay.style.display = 'none';
-        //     SetDefaultDocument();
-        // }
-        // ui.style.display = 'block';
     }
 
     try {
@@ -156,6 +148,13 @@ async function init()
         qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
         qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
 
+        // send source code to linter, which will show the resulting QML item if compilation
+        // succeeds (see onLintComponentIsReady()).
+        {
+            const src = gCodeEditor.state.doc.toString();
+            qtInstance.qmlfiddle_lintSource((text) => {}, src);
+        }
+        
         resizeWasmScreen();
     } catch (e) {
         console.error(e);
