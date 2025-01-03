@@ -1,8 +1,12 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+
+.d-flex {
+  display: flex;
 }
 
-a {
-  color: #00B7FF;
+.d-block {
+  display: block;
+}
+
+.align-items-center {
+  align-items: center;
 }

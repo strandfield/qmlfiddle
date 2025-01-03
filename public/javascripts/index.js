@@ -44,7 +44,6 @@ function SetDefaultDocument() {
 async function init()
 {
     const overlay = document.querySelector('#home-overlay');
-    //const viewport = document.querySelector('#viewport');
     const spinner = document.querySelector('#qtspinner');
     const screen = document.querySelector('#screen');
     const status = document.querySelector('#qtstatus');
