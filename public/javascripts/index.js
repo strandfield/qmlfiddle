@@ -45,7 +45,7 @@ function clearConsole() {
 }
 
 var qtInstance = null;
-var gCodeEditor = null;
+var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
 
 function SetDefaultDocument() {
     const code = document.getElementById("code");

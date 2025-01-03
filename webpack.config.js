@@ -5,5 +5,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'editorbundle.js',
+    globalObject: 'this',
+    library: {
+      name: 'CodeEditor',
+      type: 'umd',
+    },
   },
 };
