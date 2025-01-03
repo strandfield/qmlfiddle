@@ -86,7 +86,10 @@ function parseConf() {
 const conf = parseConf();
 
 const { getOrCreateFiddleDatabase } = require("./src/db");
-app.locals.fiddleDatabase = getOrCreateFiddleDatabase(DataDir);
+const db = getOrCreateFiddleDatabase(DataDir);
+
+const FiddleManager = require("./src/fiddlemanager");
+app.locals.fiddleManager = new FiddleManager(db);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -96,10 +99,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use('/', indexRouter);
-app.use(express.static(path.join(__dirname, 'dist')))
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -21,6 +21,16 @@ Column {
 }
 `;
 
+function GetFiddle(req, res, next) {
+  const id = req.params.fiddleId;
+  const manager = req.app.locals.fiddleManager;
+  const fiddle = manager.getFiddleById(id);
+  res.render('index', { 
+    title: 'QML Fiddle',
+    defaultDocument: fiddle.content 
+  });
+}
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
@@ -29,5 +39,7 @@ router.get('/', function(req, res, next) {
     defaultDocument: defaultDocument 
   });
 });
+
+router.get('/:fiddleId', GetFiddle);
 
 module.exports = router;
