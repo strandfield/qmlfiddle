@@ -1,4 +1,5 @@
-function onDragCallback() {
+
+function resizeWasmScreen() {
     if (qtInstance) {
         let elem = document.getElementById("screen");
         qtInstance.qtResizeContainerElement(elem);
@@ -6,15 +7,48 @@ function onDragCallback() {
     }
 }
 
+function onDragCallback() {
+    resizeWasmScreen();
+}
+
 window.Split(['#code', '#output'], {
     onDrag: onDragCallback
 });
 
-window.Split(['#screen', '#console'], {
-    onDrag: onDragCallback,
-    direction: 'vertical',
-    sizes: [75, 25],
-});
+var consoleSplit = null;
+
+function showConsole() {
+    if (consoleSplit) {
+        return;
+    }
+
+    let element = document.getElementById("console");
+    element.style.display = 'block';
+
+    consoleSplit = window.Split(['#screen', '#console'], {
+        onDrag: onDragCallback,
+        direction: 'vertical',
+        sizes: [75, 25],
+    });
+
+    resizeWasmScreen();
+}
+
+function hideConsole() {
+    let element = document.getElementById("console");
+    element.style.display = 'none';
+
+    element = document.getElementById("screen");
+    element.style.height = '100%';
+    resizeWasmScreen();
+
+    if (!consoleSplit) {
+        return;
+    }
+
+    consoleSplit.destroy();
+    consoleSplit = null;
+}
 
 function writeConsole(text) {
     let out = document.getElementById("console");
@@ -43,6 +77,7 @@ function onLintComponentIsReady() {
 
 function recvMssg(text) {
     //console.log(`message received: ${text}`);
+    showConsole();
     writeConsole(text);
 }
 
@@ -70,6 +105,8 @@ function SetDefaultDocument() {
 
 async function init()
 {
+    hideConsole();
+
     const overlay = document.querySelector('#home-overlay');
     const spinner = document.querySelector('#qtspinner');
     const screen = document.querySelector('#screen');
@@ -111,6 +148,8 @@ async function init()
         qtInstance.qmlfiddle_setMessageHandler(recvMssg);
         qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
         qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
+
+        resizeWasmScreen();
     } catch (e) {
         console.error(e);
         console.error(e.stack);
