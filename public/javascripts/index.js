@@ -148,13 +148,10 @@ async function init()
         qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
         qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
 
-        // send source code to linter, which will show the resulting QML item if compilation
+        // enable qml linter, which will show the resulting QML item if compilation
         // succeeds (see onLintComponentIsReady()).
-        {
-            const src = gCodeEditor.state.doc.toString();
-            qtInstance.qmlfiddle_lintSource((text) => {}, src);
-        }
-        
+        CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
+
         resizeWasmScreen();
     } catch (e) {
         console.error(e);
