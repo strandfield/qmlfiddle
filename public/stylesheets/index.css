@@ -16,6 +16,7 @@ body {
   align-items: center;
   background-color:#484444;
   color: white;
+  padding-left: 1ex;
 }
 
 #content {
@@ -29,6 +30,7 @@ body {
   width: 100vw;
   background-color: #484444;
   color: white;
+  padding-left: 1em;
 }
 
 .hmenu {
@@ -65,6 +67,11 @@ body {
 
 }
 
+#console {
+  padding: 1ex;
+  font-family: monospace !important;
+}
+
 .split {
     display: flex;
     flex-direction: row;
@@ -79,6 +86,10 @@ body {
 .gutter.gutter-horizontal {
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
     cursor: col-resize;
+}
+.gutter.gutter-vertical {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  cursor: row-resize;
 }
 
 .cm-editor {

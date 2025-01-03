@@ -4,7 +4,7 @@ html
     meta(charset='utf-8')
     meta(name='viewport', content="width=device-width, height=device-height, user-scalable=0")
     title= title
-    link(rel='stylesheet', href='/stylesheets/styles.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/index.css')
     script(src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js")
   body(onload="init()")
@@ -15,7 +15,9 @@ html
       main(id="content", class="split")
         div(id="code")
           pre= defaultDocument
-        div(id="screen")
+        div(id="output")
+          div(id="screen")
+          div(id="console")
       footer(id="footer") 
         ul(class="hmenu")
           li

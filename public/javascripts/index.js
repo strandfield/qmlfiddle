@@ -6,9 +6,17 @@ function onDragCallback() {
     }
 }
 
-window.Split(['#code', '#screen'], {
+window.Split(['#code', '#output'], {
     onDrag: onDragCallback
 });
+
+window.Split(['#screen', '#console'], {
+    onDrag: onDragCallback,
+    direction: 'vertical',
+    sizes: [75, 25],
+});
+
+/* WASM event handlers (called from C++) */
 
 function onCurrentItemChanged() {
     console.log("current item changed");
@@ -16,8 +24,24 @@ function onCurrentItemChanged() {
 
 function onLintComponentIsReady() {
   setTimeout(function() {
+    clearConsole();
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
+}
+
+/* end */
+
+function recvMssg(text) {
+    console.log(`message received: ${text}`);
+    let out = document.getElementById("console");
+    let entry = document.createElement("DIV");
+    entry.innerText = text;
+    out.appendChild(entry);
+}
+  
+function clearConsole() {
+    let out = document.getElementById("console");
+    out.innerHTML = '';
 }
 
 var qtInstance = null;
@@ -36,7 +60,6 @@ function SetDefaultDocument() {
             }
         });
 
-        console.log(code.firstElementChild.innerHTML);
         code.firstElementChild.remove();
     }
 }
@@ -81,6 +104,7 @@ async function init()
         });
         
         qtInstance = instance;
+        qtInstance.qmlfiddle_setMessageHandler(recvMssg);
     } catch (e) {
         console.error(e);
         console.error(e.stack);
