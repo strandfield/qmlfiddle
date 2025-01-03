@@ -1,4 +1,5 @@
-function onDragCallback() {
+
+function resizeWasmScreen() {
     if (qtInstance) {
         let elem = document.getElementById("screen");
         qtInstance.qtResizeContainerElement(elem);
@@ -6,22 +7,84 @@ function onDragCallback() {
     }
 }
 
-window.Split(['#code', '#screen'], {
+function onDragCallback() {
+    resizeWasmScreen();
+}
+
+window.Split(['#code', '#output'], {
     onDrag: onDragCallback
 });
 
+var consoleSplit = null;
+
+function showConsole() {
+    if (consoleSplit) {
+        return;
+    }
+
+    let element = document.getElementById("console");
+    element.style.display = 'block';
+
+    consoleSplit = window.Split(['#screen', '#console'], {
+        onDrag: onDragCallback,
+        direction: 'vertical',
+        sizes: [75, 25],
+    });
+
+    resizeWasmScreen();
+}
+
+function hideConsole() {
+    let element = document.getElementById("console");
+    element.style.display = 'none';
+
+    element = document.getElementById("screen");
+    element.style.height = '100%';
+    resizeWasmScreen();
+
+    if (!consoleSplit) {
+        return;
+    }
+
+    consoleSplit.destroy();
+    consoleSplit = null;
+}
+
+function writeConsole(text) {
+    let out = document.getElementById("console");
+    let entry = document.createElement("DIV");
+    entry.innerText = text;
+    out.appendChild(entry);
+}
+
+function clearConsole() {
+    let out = document.getElementById("console");
+    out.innerHTML = '';
+}
+
+/* WASM event handlers */
+
 function onCurrentItemChanged() {
-    console.log("current item changed");
+    //console.log("current item changed");
 }
 
 function onLintComponentIsReady() {
   setTimeout(function() {
+    clearConsole();
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
 }
 
+function recvMssg(text) {
+    //console.log(`message received: ${text}`);
+    showConsole();
+    writeConsole(text);
+}
+
+/* end */
+
 var qtInstance = null;
-var gCodeEditor = null;
+var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
 
 function SetDefaultDocument() {
     const code = document.getElementById("code");
@@ -36,26 +99,25 @@ function SetDefaultDocument() {
             }
         });
 
-        console.log(code.firstElementChild.innerHTML);
         code.firstElementChild.remove();
     }
 }
 
 async function init()
 {
-    const overlay = document.querySelector('#home-overlay');
-    //const viewport = document.querySelector('#viewport');
+    hideConsole();
+    SetDefaultDocument();
+
+    const overlay = document.querySelector('#screen-overlay');
     const spinner = document.querySelector('#qtspinner');
     const screen = document.querySelector('#screen');
     const status = document.querySelector('#qtstatus');
 
     const showUi = (ui) => {
-        [spinner, screen].forEach(element => element.style.display = 'none');
-        if (screen === ui) {
-            screen.style.position = 'default';
-            overlay.style.display = 'none';
-            SetDefaultDocument();
-        }
+        if (ui == screen) {
+            overlay.remove();
+        } 
+        
         ui.style.display = 'block';
     }
 
@@ -82,6 +144,18 @@ async function init()
         });
         
         qtInstance = instance;
+        qtInstance.qmlfiddle_setMessageHandler(recvMssg);
+        qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
+        qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
+
+        // send source code to linter, which will show the resulting QML item if compilation
+        // succeeds (see onLintComponentIsReady()).
+        {
+            const src = gCodeEditor.state.doc.toString();
+            qtInstance.qmlfiddle_lintSource((text) => {}, src);
+        }
+        
+        resizeWasmScreen();
     } catch (e) {
         console.error(e);
         console.error(e.stack);

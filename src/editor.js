@@ -12,6 +12,7 @@ function parseDiagnostics(text) {
 	return diagnostics;
 }
 
+// TODO: remove use of global variable "qtInstance"
 const qmlLinter = linter(view => {
 	if (!qtInstance) {
 		return [];
@@ -26,9 +27,13 @@ const qmlLinter = linter(view => {
 	return result;
 });
 
-let editor = new EditorView({
-	extensions: [basicSetup, keymap.of([indentWithTab]), javascript(), qmlLinter, lintGutter()],
-	parent: document.getElementById("code")
-});
+function createEditor(parentElement) {
+	return new EditorView({
+		extensions: [basicSetup, keymap.of([indentWithTab]), javascript(), qmlLinter, lintGutter()],
+		parent: parentElement
+	});
+}
 
-gCodeEditor = editor;
+export {
+    createEditor
+};
