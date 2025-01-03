@@ -107,19 +107,26 @@ async function init()
 {
     hideConsole();
 
-    const overlay = document.querySelector('#home-overlay');
+    const overlay = document.querySelector('#screen-overlay');
     const spinner = document.querySelector('#qtspinner');
     const screen = document.querySelector('#screen');
     const status = document.querySelector('#qtstatus');
 
     const showUi = (ui) => {
-        [spinner, screen].forEach(element => element.style.display = 'none');
-        if (screen === ui) {
-            screen.style.position = 'default';
-            overlay.style.display = 'none';
+        if (ui == screen) {
+            overlay.remove();
             SetDefaultDocument();
-        }
+        } 
+        
         ui.style.display = 'block';
+
+        // [spinner, screen].forEach(element => element.style.display = 'none');
+        // if (screen === ui) {
+        //     screen.style.position = 'default';
+        //     overlay.style.display = 'none';
+        //     SetDefaultDocument();
+        // }
+        // ui.style.display = 'block';
     }
 
     try {

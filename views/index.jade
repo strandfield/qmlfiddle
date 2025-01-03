@@ -15,21 +15,21 @@ html
           img(src="/favicon.ico", class="d-block") 
       main(id="content", class="split")
         div(id="code")
-          pre= defaultDocument
+          pre(id="hardcoded-fiddle")= defaultDocument
         div(id="output")
           div(id="screen")
+            div(id="screen-overlay")
+              figure(style="overflow:visible;", id="qtspinner")
+                center(style="line-height:150%")
+                  img(src="qtlogo.svg", width="320", height="200", style="display:block")
+                  strong Qt for WebAssembly: qmlfiddle
+                  div(id="qtstatus")
+                  noscript JavaScript is disabled. Please enable JavaScript to use this application.
           div(id="console")
       footer(id="footer") 
         ul(class="hmenu")
           li
             a(href="https://github.com/strandfield/qmlfiddle") Fork me on GitHub
-    div(id="home-overlay")
-      figure(style="overflow:visible;", id="qtspinner")
-        center(style="margin-top:1.5em; line-height:150%")
-          img(src="qtlogo.svg", width="320", height="200", style="display:block")
-          strong Qt for WebAssembly: qmlfiddle
-          div(id="qtstatus")
-          noscript JavaScript is disabled. Please enable JavaScript to use this application.
     script(type="text/javascript", src="javascripts/index.js")
     script(src="qmlfiddle.js")
     script(type="text/javascript", src="qtloader.js")

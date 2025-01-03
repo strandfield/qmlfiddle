@@ -49,13 +49,13 @@ body {
   color: white;
 }
 
-#home-overlay {
+#screen-overlay {
   height: 100%;
   width: 100%;
   z-index: 1000;
-  position: fixed;
-  top: 0;
-  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: #aaaaaa;
 }
 
@@ -70,6 +70,14 @@ body {
 #console {
   padding: 1ex;
   font-family: monospace !important;
+}
+
+#qtspinner {
+  margin: 0;
+}
+
+#hardcoded-fiddle {
+  display: none;
 }
 
 .split {
