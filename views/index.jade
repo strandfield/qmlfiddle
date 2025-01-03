@@ -7,6 +7,13 @@ html
     link(rel='stylesheet', href='/stylesheets/index.css')
     script(src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js")
   body(onload="init()")
+    div(id="layout-container")
+      header(id="header") Hello 
+      aside(id="sidebar") Sidebar
+      main(id="viewport", class="split")
+        div(id="code")
+          pre= defaultDocument
+        div(id="screen")
     div(id="home-overlay")
       figure(style="overflow:visible;", id="qtspinner")
         center(style="margin-top:1.5em; line-height:150%")
@@ -14,10 +21,6 @@ html
           strong Qt for WebAssembly: qmlfiddle
           div(id="qtstatus")
           noscript JavaScript is disabled. Please enable JavaScript to use this application.
-    div(id="viewport", class="split")
-      div(id="code")
-        pre= defaultDocument
-      div(id="screen")
     script(type="text/javascript", src="javascripts/index.js")
     script(src="qmlfiddle.js")
     script(type="text/javascript", src="qtloader.js")
