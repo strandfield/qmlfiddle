@@ -18,6 +18,8 @@ qt_add_executable(qmlfiddle
     qmlfiddle.qrc
 )
 
+target_compile_definitions(qmlfiddle PRIVATE HASHING_SALT="J-type 327 Nubian")
+
 ## https://doc.qt.io/qt-6/wasm.html
 #target_compile_options(qmlfiddle PRIVATE -s EXPORTED_RUNTIME_METHODS=ccall,cwrap)
 #target_link_options(qmlfiddle PRIVATE -s EXPORTED_RUNTIME_METHODS=ccall,cwrap)

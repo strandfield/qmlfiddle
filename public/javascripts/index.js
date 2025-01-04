@@ -103,10 +103,46 @@ function SetDefaultDocument() {
     }
 }
 
+function GetSaveButton() {
+    return document.getElementById("saveButton");
+}
+
+function GetForkButton() {
+    return document.getElementById("forkButton");
+}
+
+function SaveFiddle() {
+    const title = document.getElementById("titleInput").value;
+    const text = gCodeEditor.state.doc.toString();
+    let data = {
+        content: text,
+        title: title,
+        hash: qtInstance.qmlfiddle_sign(text)
+    };
+
+    if (gFiddleId != "") {
+        data.id = gFiddleId;
+    }
+
+    $.post("/api/fiddle", data, function(result) {
+        console.log(result);
+        if (!result.accepted) {
+            return;
+        }
+        const id = result.fiddleId.toString(16);
+        if (id != gFiddleId) {
+            gFiddleId = id;
+            window.history.pushState({}, "", "/" + gFiddleId);
+        }
+    });
+}
+
 async function init()
 {
     hideConsole();
     SetDefaultDocument();
+
+    GetForkButton().style.display = 'none';
 
     const overlay = document.querySelector('#screen-overlay');
     const spinner = document.querySelector('#qtspinner');
@@ -144,13 +180,19 @@ async function init()
         });
         
         qtInstance = instance;
-        qtInstance.qmlfiddle_setMessageHandler(recvMssg);
-        qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
-        qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
 
-        // enable qml linter, which will show the resulting QML item if compilation
-        // succeeds (see onLintComponentIsReady()).
-        CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
+        if (qtInstance) {
+            qtInstance.qmlfiddle_setMessageHandler(recvMssg);
+            qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
+            qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
+    
+            // enable qml linter, which will show the resulting QML item if compilation
+            // succeeds (see onLintComponentIsReady()).
+            CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
+        }
+
+        let save_button = GetSaveButton();
+        save_button.onclick = SaveFiddle;
 
         resizeWasmScreen();
     } catch (e) {

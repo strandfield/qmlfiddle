@@ -14,9 +14,25 @@ body {
   height: 36px;
   display:flex;
   align-items: center;
+  gap: 12px;
   background-color:#484444;
   color: white;
   padding-left: 1ex;
+}
+
+#titleInput {
+  width: 75%;
+}
+
+#actions {
+  list-style: none;
+  margin-right: 12px;
+  padding: 0;
+}
+
+#actions > li {
+  display: inline-block;
+  padding-left: 8px;
 }
 
 #content {

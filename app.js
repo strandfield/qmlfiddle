@@ -85,6 +85,9 @@ function parseConf() {
 
 const conf = parseConf();
 
+// TODO: read signing salt from conf or env
+app.locals.hashingSalt = "J-type 327 Nubian";
+
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);
 
@@ -103,6 +106,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
+var apiRouter = require('./routes/api');
+app.use('/api', apiRouter);
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler

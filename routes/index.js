@@ -25,9 +25,14 @@ function GetFiddle(req, res, next) {
   const id = req.params.fiddleId;
   const manager = req.app.locals.fiddleManager;
   const fiddle = manager.getFiddleById(id);
+
+  if (!fiddle) {
+    return next();
+  }
+
   res.render('index', { 
     title: 'QML Fiddle',
-    defaultDocument: fiddle.content 
+    defaultDocument: fiddle 
   });
 }
 
@@ -36,7 +41,11 @@ router.get('/', function(req, res, next) {
 
   res.render('index', { 
     title: 'QML Fiddle',
-    defaultDocument: defaultDocument 
+    defaultDocument: {
+      id: "",
+      title: "",
+      content: defaultDocument
+    } 
   });
 });
 

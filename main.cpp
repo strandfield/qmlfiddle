@@ -14,6 +14,8 @@
 
 #include <QTimer>
 
+#include <QCryptographicHash>
+
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
@@ -22,6 +24,10 @@
 // https://doc.qt.io/qt-6/qtplugin.html#Q_IMPORT_PLUGIN
 Q_IMPORT_QML_PLUGIN(QtQuickLayoutsPlugin)
 Q_IMPORT_QML_PLUGIN(QtQuickControls2Plugin)
+
+#ifndef HASHING_SALT
+#error A HASHING_SALT must be provided
+#endif
 
 class Controller;
 static Controller *gController = nullptr;
@@ -174,6 +180,14 @@ public:
       {
         m_rcvMessage(str);
       }
+    }
+
+    static QByteArray saltedHash(const QByteArray& data)
+    {
+      QCryptographicHash hash{QCryptographicHash::Sha1};
+      hash.addData(data);
+      hash.addData(HASHING_SALT);
+      return hash.result().toHex();
     }
 
 public:
@@ -333,6 +347,15 @@ EMSCRIPTEN_KEEPALIVE void set_lint_ready_handler(const emscripten::val& handler)
   }
 }
 
+// note: this is not signing in the cryptographic sense of the term, but rather
+// a salted hash. because the salt is supposed to be kept secret between the wasm
+// and the server, this should provide a sufficient auth method (although pretty weak
+// on paper).
+EMSCRIPTEN_KEEPALIVE std::string sign_source_code(const std::string &text)
+{
+  return Controller::saltedHash(QByteArray::fromStdString(text)).toStdString();
+}
+
 } // extern "C"
 
 EMSCRIPTEN_BINDINGS(my_module)
@@ -342,6 +365,7 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("qmlfiddle_setMessageHandler", &set_message_handler);
   emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
     emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);
+  emscripten::function("qmlfiddle_sign", &sign_source_code);
 }
 
 /*
