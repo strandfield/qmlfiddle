@@ -11,7 +11,8 @@ function initDatabase(db) {
 	db.exec(`CREATE TABLE "fiddle" (
 		"id"                    INTEGER NOT NULL PRIMARY KEY UNIQUE,
 		"title"                 TEXT NOT NULL,
-		"content"               TEXT NOT NULL
+		"content"               TEXT NOT NULL,
+		"pepper"                INTEGER NOT NULL DEFAULT 3
 	)`);
 }
 

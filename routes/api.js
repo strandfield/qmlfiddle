@@ -12,7 +12,7 @@ function GetSiteInfo(req, res, next) {
   });
 }
 
-function UploadFiddle(req, res, next) {
+function PostFiddle(req, res, next) {
   let title = req.body?.title;
   let content = req.body.content;
   let hash = req.body.hash;
@@ -30,7 +30,6 @@ function UploadFiddle(req, res, next) {
   shasum.update(content);
   shasum.update(req.app.locals.hashingSalt);
   const sha1 = shasum.digest('hex');
-  console.log(sha1);
 
   const accepted = sha1 == hash;
 
@@ -44,16 +43,35 @@ function UploadFiddle(req, res, next) {
     accepted: true
   };
 
-  if (id != "") {
-    const updated = req.app.locals.fiddleManager.updateFiddle(id, title, content);
-    if (!updated) {
+  const manager = req.app.locals.fiddleManager;
+
+  if (id != "") 
+  {
+    const edit_key = manager.getFiddleEditKey(id);
+    if (!edit_key) {
       return res.json({
         accepted: false,
         message: "no such fiddle"
       });
     }
-  } else {
-    id = req.app.locals.fiddleManager.createFiddle(title, content);
+
+    if (req.body.editKey != edit_key) {
+      return res.json({
+        accepted: false,
+        message: "invalid or missing edit key"
+      });
+    }
+
+    const fiddle = manager.updateFiddle(id, title, content);
+    console.assert(fiddle != null, "update must no fail");
+
+    result.editKey = manager.getFiddleEditKey(fiddle);
+  } 
+  else 
+  {
+    let fiddle = manager.createFiddle(title, content);
+    id = fiddle.id.toString(16);
+    result.editKey = manager.getFiddleEditKey(fiddle);
   }
   result.fiddleId = id;
 
@@ -63,7 +81,7 @@ function UploadFiddle(req, res, next) {
 var router = express.Router();
 
 router.get('/site/info', GetSiteInfo);
-router.post('/fiddle', UploadFiddle);
+router.post('/fiddle', PostFiddle);
 
 
 module.exports = router;
