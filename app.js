@@ -85,8 +85,14 @@ function parseConf() {
 
 const conf = parseConf();
 
-// TODO: read signing salt from conf or env
-app.locals.hashingSalt = "J-type 327 Nubian";
+let hashingSalt = "J-type 327 Nubian";
+if (conf?.hashingSalt) {
+  hashingSalt = conf.hashingSalt;
+} else if (process.env.QMLFIDDLE_HASHING_SALT) {
+  hashingSalt = process.env.QMLFIDDLE_HASHING_SALT;
+}
+console.log(`hashingSalt = ${hashingSalt}`);
+app.locals.hashingSalt = hashingSalt;
 
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);
