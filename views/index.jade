@@ -11,6 +11,7 @@ html
     script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js")
     script.
       var gFiddleId = "#{defaultDocument.id.toString(16)}";
+      var gUploadEnabled = #{uploadEnabled};
   body(onload="init()")
     div(id="layout-container")
       header(id="header") 

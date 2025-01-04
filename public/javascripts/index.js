@@ -158,12 +158,20 @@ async function init()
     hideConsole();
     SetDefaultDocument();
 
-    GetForkButton().style.display = 'none';
-    if (gFiddleId != "" && gFiddleEditKey == "") {
+    if (!gUploadEnabled) 
+    {
+        document.getElementById("titleInput").style.display = 'none';
         GetSaveButton().style.display = 'none';
-        GetForkButton().style.display = 'inline';
-    } else {
         GetForkButton().style.display = 'none';
+    }
+    else
+    {
+        if (gFiddleId != "" && gFiddleEditKey == "") {
+            GetSaveButton().style.display = 'none';
+            GetForkButton().style.display = 'inline';
+        } else {
+            GetForkButton().style.display = 'none';
+        }
     }
 
     const overlay = document.querySelector('#screen-overlay');

@@ -7,8 +7,9 @@ var fs = require('fs');
 
 function GetSiteInfo(req, res, next) {
   res.json({
-    //'baseUrl': req.app.locals.site.baseUrl // TODO: remove me ?
-    baseUrl: "qmlfiddle.net"
+    features: {
+      upload: req.app.locals.uploadEnabled
+    }
   });
 }
 
@@ -69,6 +70,13 @@ function PostFiddle(req, res, next) {
   } 
   else 
   {
+    if (!req.app.locals.uploadEnabled) {
+      return res.json({
+        accepted: false,
+        message: "no new fiddle can be created"
+      });
+    }
+
     let fiddle = manager.createFiddle(title, content);
     id = fiddle.id.toString(16);
     result.editKey = manager.getFiddleEditKey(fiddle);
@@ -82,6 +90,5 @@ var router = express.Router();
 
 router.get('/site/info', GetSiteInfo);
 router.post('/fiddle', PostFiddle);
-
 
 module.exports = router;

@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var ini = require('ini');
 var fs = require('fs');
 
 var indexRouter = require('./routes/index');
@@ -93,6 +94,16 @@ if (conf?.hashingSalt) {
 }
 console.log(`hashingSalt = ${hashingSalt}`);
 app.locals.hashingSalt = hashingSalt;
+
+let uploadEnabled = true;
+if (conf?.features?.upload != undefined) {
+  uploadEnabled = conf.features.upload
+}
+
+app.locals.uploadEnabled = uploadEnabled;
+if (app.locals.uploadEnabled) {
+  console.log("fiddle upload is enabled");
+}
 
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);
