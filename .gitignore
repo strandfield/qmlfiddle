@@ -3,3 +3,5 @@ build-*
 node_modules
 dist
 CMakeLists.txt.user
+build
+data/*

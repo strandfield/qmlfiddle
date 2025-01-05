@@ -1,4 +1,10 @@
+// Copyright (C) 2025 Vincent Chambrin
+// This file is part of the 'qmlfiddle' project.
+// For conditions of distribution and use, see copyright notice in LICENSE.
+
 #include <QGuiApplication>
+
+#include <QQmlEngineExtensionPlugin>
 
 #include <QQuickView>
 
@@ -12,27 +18,23 @@
 
 #include <QTimer>
 
+#include <QCryptographicHash>
+
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
 #include <algorithm>
 
-// Useful: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/index.html
+// https://doc.qt.io/qt-6/qtplugin.html#Q_IMPORT_PLUGIN
+Q_IMPORT_QML_PLUGIN(QtQuickLayoutsPlugin)
+Q_IMPORT_QML_PLUGIN(QtQuickControls2Plugin)
 
-EM_JS(void, notifyCurrentItemChange, (), {
-    if (onCurrentItemChanged) {
-        onCurrentItemChanged();
-    }
-})
-
-EM_JS(void, notifyLintComponentIsReady, (), {
-  if (onLintComponentIsReady) {
-    onLintComponentIsReady();
-  }
-})
-
+#ifndef HASHING_SALT
+#error A HASHING_SALT must be provided
+#endif
 
 class Controller;
+static Controller *gController = nullptr;
 
 class QmlSourceLint : public QObject
 {
@@ -124,6 +126,8 @@ private:
   QQmlComponent* m_component = nullptr;
 };
 
+void myMessageHandler(QtMsgType type, const QMessageLogContext & context, const QString & text);
+
 class Controller : public QObject
 {
     Q_OBJECT
@@ -131,7 +135,9 @@ public:
     explicit Controller(QQuickView &view, QObject *parent = nullptr)
         : QObject(parent)
         , m_view(&view)
-    {}
+    {
+      qInstallMessageHandler(myMessageHandler);
+    }
 
     QQmlEngine* engine() const
     {
@@ -168,6 +174,30 @@ public:
       return m_lint_component;
     }
 
+    void setMessageHandler(const emscripten::val& handler)
+    {
+      m_rcvMessage = handler;
+    }
+
+    void sendMessage(const std::string& str) {
+      if (!m_rcvMessage.isUndefined())
+      {
+        m_rcvMessage(str);
+      }
+    }
+
+    static QByteArray saltedHash(const QByteArray& data)
+    {
+      QCryptographicHash hash{QCryptographicHash::Sha1};
+      hash.addData(data);
+      hash.addData(HASHING_SALT);
+      return hash.result().toHex();
+    }
+
+public:
+    emscripten::val onCurrentItemChanged;
+  emscripten::val onLintComponentReady;
+
 protected Q_SLOTS:
     void onLintCompleted()
     {
@@ -179,7 +209,10 @@ protected Q_SLOTS:
 
       if (lint->component()->status() == QQmlComponent::Ready) {
         setLastLintComponent(lint->component());
-        notifyLintComponentIsReady();
+        if (!onLintComponentReady.isUndefined())
+        {
+          onLintComponentReady();
+        }
       }
 
       lint->deleteLater();
@@ -228,7 +261,10 @@ protected:
 
         component.completeCreate();
 
-        notifyCurrentItemChange();
+        if (!onCurrentItemChanged.isUndefined())
+        {
+          onCurrentItemChanged();
+        }
     }
 
 private:
@@ -236,9 +272,16 @@ private:
     QQmlComponent *m_lint_component = nullptr;
     QQmlComponent *m_component = nullptr;
     QQuickItem *m_item = nullptr;
+    emscripten::val m_rcvMessage;
 };
 
-static Controller *gController = nullptr;
+void myMessageHandler(QtMsgType type, const QMessageLogContext & context, const QString & text)
+{
+  if(gController)
+  {
+    gController->sendMessage(qFormatLogMessage(type, context, text).toStdString());
+  }
+}
 
 
 QmlSourceLint::QmlSourceLint(Controller& controller, const emscripten::val& resolveFunc, const QByteArray& src)
@@ -261,6 +304,11 @@ void QmlSourceLint::start()
   m_component->setData(m_data, QUrl());
 }
 
+/*
+ * emscripten bindings
+ */
+
+// Useful: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/index.html
 
 extern "C" {
 
@@ -282,13 +330,51 @@ EMSCRIPTEN_KEEPALIVE void use_last_lint_as_source()
   }
 }
 
+EMSCRIPTEN_KEEPALIVE void set_message_handler(const emscripten::val& handler)
+{
+  if (gController) {
+    gController->setMessageHandler(handler);
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE void set_current_item_changed_handler(const emscripten::val& handler)
+{
+  if (gController) {
+    gController->onCurrentItemChanged = handler;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE void set_lint_ready_handler(const emscripten::val& handler)
+{
+  if (gController) {
+    gController->onLintComponentReady = handler;
+  }
+}
+
+// note: this is not signing in the cryptographic sense of the term, but rather
+// a salted hash. because the salt is supposed to be kept secret between the wasm
+// and the server, this should provide a sufficient auth method (although pretty weak
+// on paper).
+EMSCRIPTEN_KEEPALIVE std::string sign_source_code(const std::string &text)
+{
+  return Controller::saltedHash(QByteArray::fromStdString(text)).toStdString();
+}
+
 } // extern "C"
 
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("qmlfiddle_lintSource", &lint_source);
-    emscripten::function("qmlfiddle_UseLastLintAsSource", &use_last_lint_as_source);
+  emscripten::function("qmlfiddle_UseLastLintAsSource", &use_last_lint_as_source);
+    emscripten::function("qmlfiddle_setMessageHandler", &set_message_handler);
+  emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
+    emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);
+  emscripten::function("qmlfiddle_sign", &sign_source_code);
 }
+
+/*
+ * end
+ */
 
 int main(int argc, char *argv[])
 {
