@@ -36,6 +36,16 @@ function GetFiddle(req, res, next) {
   });
 }
 
+function GetAllFiddles(req, res, next) {
+  const manager = req.app.locals.fiddleManager;
+  const fiddles = manager.getAllFiddles();
+
+  res.render('list', { 
+    title: 'QML Fiddle',
+    fiddles: fiddles
+  });
+}
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
@@ -49,6 +59,7 @@ router.get('/', function(req, res, next) {
   });
 });
 
+router.get('/list', GetAllFiddles);
 router.get('/:fiddleId', GetFiddle);
 
 module.exports = router;

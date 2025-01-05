@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 All fiddles
+  table 
+    tbody 
+      tr 
+        th ID 
+        th Title
+      each fiddle in fiddles 
+        tr 
+          td
+            a(href=fiddle.id.toString(16))= fiddle.id.toString(16)
+          td 
+            if fiddle.title != ""
+              span= fiddle.title
+            else 
+              span Untitled fiddle
+  p Total: #{fiddles.length} fiddles.
+

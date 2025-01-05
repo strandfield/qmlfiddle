@@ -32,6 +32,11 @@ class FiddleManager
         return stmt.get(fiddleId);
     }
 
+    getAllFiddles(fields = ['id', 'title']) {
+        let stmt = this.database.prepare(`SELECT ${fields.join(",")} FROM fiddle`);
+        return stmt.all();
+    }
+
     #generateFiddleId() {
         // note: we may increase the maxid as we go along
         const maxid = 10000000; // TODO: put that value into conf
