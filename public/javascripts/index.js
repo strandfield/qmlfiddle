@@ -83,6 +83,12 @@ function recvMssg(text) {
 
 /* end */
 
+var gFiddleEditKey = "";
+{
+    let search_params = new URLSearchParams(window.location.search);
+    gFiddleEditKey = search_params.get("editKey") ?? "";
+}
+
 var qtInstance = null;
 var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
 
@@ -103,10 +109,70 @@ function SetDefaultDocument() {
     }
 }
 
+function GetSaveButton() {
+    return document.getElementById("saveButton");
+}
+
+function GetForkButton() {
+    return document.getElementById("forkButton");
+}
+
+function SaveFiddle() {
+    const title = document.getElementById("titleInput").value;
+    const text = gCodeEditor.state.doc.toString();
+    let data = {
+        content: text,
+        title: title,
+        hash: qtInstance.qmlfiddle_sign(text)
+    };
+
+    if (gFiddleId != "") {
+        data.id = gFiddleId;
+        data.editKey = gFiddleEditKey;
+    }
+
+    $.post("/api/fiddle", data, function(result) {
+        console.log(result);
+        if (!result.accepted) {
+            return;
+        }
+        if (result.fiddleId != gFiddleId) {
+            gFiddleId = result.fiddleId;
+            window.history.pushState({}, "", "/" + gFiddleId);
+        }
+
+        gFiddleEditKey = result.editKey ?? "";
+    });
+}
+
+function ForkFiddle() {
+    gFiddleId = "";
+    gFiddleEditKey = "";
+    window.history.pushState({}, "", "/");
+    GetForkButton().style.display = 'none';
+    GetSaveButton().style.display = 'inline';
+}
+
 async function init()
 {
     hideConsole();
     SetDefaultDocument();
+
+    if (!gUploadEnabled) 
+    {
+        document.getElementById("titleInput").style.display = 'none';
+        GetSaveButton().style.display = 'none';
+        GetForkButton().style.display = 'none';
+    }
+    else
+    {
+        if (gFiddleId != "" && gFiddleEditKey == "") {
+            GetSaveButton().style.display = 'none';
+            GetForkButton().style.display = 'inline';
+        } else {
+            GetForkButton().style.display = 'none';
+        }
+    }
 
     const overlay = document.querySelector('#screen-overlay');
     const spinner = document.querySelector('#qtspinner');
@@ -144,17 +210,20 @@ async function init()
         });
         
         qtInstance = instance;
-        qtInstance.qmlfiddle_setMessageHandler(recvMssg);
-        qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
-        qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
 
-        // send source code to linter, which will show the resulting QML item if compilation
-        // succeeds (see onLintComponentIsReady()).
-        {
-            const src = gCodeEditor.state.doc.toString();
-            qtInstance.qmlfiddle_lintSource((text) => {}, src);
+        if (qtInstance) {
+            qtInstance.qmlfiddle_setMessageHandler(recvMssg);
+            qtInstance.qmlfiddle_onCurrentItemChanged(onCurrentItemChanged);
+            qtInstance.qmlfiddle_onLintReady(onLintComponentIsReady);
+    
+            // enable qml linter, which will show the resulting QML item if compilation
+            // succeeds (see onLintComponentIsReady()).
+            CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
         }
-        
+
+        GetSaveButton().onclick = SaveFiddle;
+        GetForkButton().onclick = ForkFiddle;
+
         resizeWasmScreen();
     } catch (e) {
         console.error(e);

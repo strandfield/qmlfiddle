@@ -8,14 +8,25 @@ html
     link(rel='stylesheet', href='/stylesheets/index.css')
     script(src="editorbundle.js")
     script(src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js")
+    script.
+      var gFiddleId = "#{defaultDocument.id.toString(16)}";
+      var gUploadEnabled = #{conf.features.uploadEnabled};
   body(onload="init()")
     div(id="layout-container")
       header(id="header") 
         a(href="https://qmlfiddle.net")
           img(src="/favicon.ico", class="d-block") 
+        div(class="flex-grow-1")
+          input(type="text", id="titleInput", name="title", placeholder="Untitled fiddle", value=defaultDocument.title)
+        ul(id="actions")
+          li 
+            input(type="button", id="saveButton",value="Save")
+          li
+            input(type="button", id="forkButton", value="Fork")
       main(id="content", class="split")
         div(id="code")
-          pre(id="hardcoded-fiddle")= defaultDocument
+          pre(id="hardcoded-fiddle")= defaultDocument.content
         div(id="output")
           div(id="screen")
             div(id="screen-overlay")

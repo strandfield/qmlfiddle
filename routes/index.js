@@ -21,13 +21,45 @@ Column {
 }
 `;
 
+function GetFiddle(req, res, next) {
+  const id = req.params.fiddleId;
+  const manager = req.app.locals.fiddleManager;
+  const fiddle = manager.getFiddleById(id);
+
+  if (!fiddle) {
+    return next();
+  }
+
+  res.render('index', { 
+    title: 'QML Fiddle',
+    defaultDocument: fiddle 
+  });
+}
+
+function GetAllFiddles(req, res, next) {
+  const manager = req.app.locals.fiddleManager;
+  const fiddles = manager.getAllFiddles();
+
+  res.render('list', { 
+    title: 'QML Fiddle',
+    fiddles: fiddles
+  });
+}
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
   res.render('index', { 
     title: 'QML Fiddle',
-    defaultDocument: defaultDocument 
+    defaultDocument: {
+      id: "",
+      title: "",
+      content: defaultDocument
+    } 
   });
 });
+
+router.get('/list', GetAllFiddles);
+router.get('/:fiddleId', GetFiddle);
 
 module.exports = router;
