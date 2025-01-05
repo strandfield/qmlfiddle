@@ -84,6 +84,15 @@ function parseConf() {
   }
 }
 
+const defaultConf = {
+  features: {
+    uploadEnabled: true
+  },
+  limits: {
+    maxFiddleSize: "32kb"
+  }
+};
+
 const conf = parseConf();
 
 let hashingSalt = "J-type 327 Nubian";
@@ -100,9 +109,37 @@ if (conf?.features?.upload != undefined) {
   uploadEnabled = conf.features.upload
 }
 
-app.locals.uploadEnabled = uploadEnabled;
-if (app.locals.uploadEnabled) {
+function parseMaxFiddleSize(value)  {
+  if (typeof value == 'number') {
+    return value;
+  }
+
+  if (value.endsWith('kb')) {
+    return parseInt(value.substring(0, value.length - 2)) * 1024;
+  } else if (value.endsWith('b')) {
+    return parseInt(value.substring(0, value.length - 1));
+  } else {
+    const r = parseInt(value);
+    console.assert(r != NaN, "invalid value for conf field maxFiddleSize");
+    return r;
+  }
+}
+
+app.locals.conf = {
+  features: {
+    uploadEnabled: uploadEnabled
+  },
+  limits: {
+    maxFiddleSize: parseMaxFiddleSize(conf?.limits?.maxFiddleSize ?? defaultConf.limits.maxFiddleSize)
+  }
+};
+
+if (app.locals.conf.features.uploadEnabled) {
   console.log("fiddle upload is enabled");
+}
+
+if (app.locals.conf.limits.maxFiddleSize > 0) {
+  console.log(`maxFiddleSize = ${app.locals.conf.limits.maxFiddleSize}`);
 }
 
 const { getOrCreateFiddleDatabase } = require("./src/db");

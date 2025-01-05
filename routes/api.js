@@ -8,7 +8,10 @@ var fs = require('fs');
 function GetSiteInfo(req, res, next) {
   res.json({
     features: {
-      upload: req.app.locals.uploadEnabled
+      upload: req.app.locals.conf.features.uploadEnabled
+    },
+    limits: {
+      maxFiddleSize: req.app.locals.conf.limits.maxFiddleSize
     }
   });
 }
@@ -44,6 +47,27 @@ function PostFiddle(req, res, next) {
     accepted: true
   };
 
+  // TODO: put max_title_length in conf
+  const max_title_length = 256;
+  if (title && title.length > max_title_length) {
+    title = title.substring(0, max_title_length);
+  }
+
+  if (!content) {
+    return res.json({
+      accepted: false,
+      message: "missing content"
+    });
+  }
+
+  const max_length = req.app.locals.conf.limits.maxFiddleSize;
+  if (max_length > 0 && content.length > max_length) {
+    return res.json({
+      accepted: false,
+      message: "fiddle too big"
+    });
+  }
+
   const manager = req.app.locals.fiddleManager;
 
   if (id != "") 
@@ -70,7 +94,7 @@ function PostFiddle(req, res, next) {
   } 
   else 
   {
-    if (!req.app.locals.uploadEnabled) {
+    if (!req.app.locals.conf.features.uploadEnabled) {
       return res.json({
         accepted: false,
         message: "no new fiddle can be created"
