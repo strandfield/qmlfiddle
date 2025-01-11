@@ -18,6 +18,11 @@
 
 #include <QTimer>
 
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QDirIterator>
+
 #include <QCryptographicHash>
 
 #include <emscripten.h>
@@ -360,6 +365,55 @@ EMSCRIPTEN_KEEPALIVE std::string sign_source_code(const std::string &text)
   return Controller::saltedHash(QByteArray::fromStdString(text)).toStdString();
 }
 
+void onLoadSuccess(const char* filename)
+{
+  qDebug()<< "loaded successfully " << filename;
+  QFile file{filename};
+  if(!file.open(QIODevice::ReadOnly))
+  {
+    qDebug()<< "could not open file " << filename;
+    return;
+  }
+
+  qDebug() <<QString::fromUtf8( file.readAll());
+
+  {
+    QDirIterator iterator{"/home"};
+    while(iterator.hasNext())
+    {
+      qDebug() << iterator.next();
+    }
+
+  }
+
+  qDebug() << "moving to web_user";
+
+  {
+    QDirIterator iterator{"/home/web_user"};
+    while(iterator.hasNext())
+    {
+      qDebug() << iterator.next();
+    }
+
+  }
+
+}
+
+void onLoadFailure(const char* filename)
+{
+  qDebug()<< "load failure " << filename;
+
+}
+
+
+EMSCRIPTEN_KEEPALIVE void asyncget()
+{
+  QTimer::singleShot(1000, [](){
+    emscripten_async_wget("/hello.txt", "/home/web_user/localfile.txt", onLoadSuccess, onLoadFailure);
+  });
+}
+
+
 } // extern "C"
 
 EMSCRIPTEN_BINDINGS(my_module)
@@ -370,6 +424,7 @@ EMSCRIPTEN_BINDINGS(my_module)
   emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
     emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);
   emscripten::function("qmlfiddle_sign", &sign_source_code);
+    emscripten::function("qmlfiddle_asyncGet", &asyncget);
 }
 
 /*
