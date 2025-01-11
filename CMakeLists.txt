@@ -14,9 +14,11 @@ qt_standard_project_setup(REQUIRES 6.8)
 set(CMAKE_AUTORCC ON)
 
 qt_add_executable(qmlfiddle
-    main.cpp
-    qmlfiddle.qrc
+    "wasm/main.cpp"
+    "wasm/qmlfiddle.qrc"
 )
+
+#set_target_properties(qmlfiddle PROPERTIES OUTPUT_NAME "qmlfiddle-6.8")
 
 if(DEFINED HASHING_SALT)
   target_compile_definitions(qmlfiddle PRIVATE HASHING_SALT="${HASHING_SALT}")
