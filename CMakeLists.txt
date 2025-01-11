@@ -13,8 +13,11 @@ qt_standard_project_setup(REQUIRES 6.8)
 # See https://doc.qt.io/qt-6/resources.html
 set(CMAKE_AUTORCC ON)
 
+file(GLOB SOURCE_FILES "wasm/*.cpp")
+file(GLOB HEADER_FILES "wasm/*.h")
+
 qt_add_executable(qmlfiddle
-    "wasm/main.cpp"
+    ${SOURCE_FILES} ${HEADER_FILES}
     "wasm/qmlfiddle.qrc"
 )
 
