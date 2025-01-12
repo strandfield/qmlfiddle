@@ -10,7 +10,6 @@
 
 #include <algorithm>
 
-constexpr const char* RESOURCE_FOLDER = "/resources/"; // TODO: use #define for that, in cmake
 constexpr const char* RESOURCE_FILE_EXTENSION = ".rcc";
 
 static ResourceManager* gResourceManager = nullptr;
@@ -61,7 +60,7 @@ void ResourceManager::fetchResource(const QString& name)
     return;
   }
 
-  std::string path = RESOURCE_FOLDER + name.toStdString() + RESOURCE_FILE_EXTENSION;
+  std::string path = "/" + std::string(RESOURCE_DIR) + "/" + name.toStdString() + RESOURCE_FILE_EXTENSION;
   QString savepath = getResourceFilePath(name);
 
   m_resourceMap[savepath] = Loading;

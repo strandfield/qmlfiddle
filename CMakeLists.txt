@@ -68,3 +68,11 @@ install(FILES
     "${CMAKE_BINARY_DIR}/qtlogo.svg"
     DESTINATION "${CMAKE_CURRENT_LIST_DIR}/dist"
 )
+
+if (NOT DEFINED RESOURCE_DIR)
+  set(RESOURCE_DIR "resources")
+endif()
+
+target_compile_definitions(qmlfiddle PRIVATE RESOURCE_DIR="${RESOURCE_DIR}")
+
+add_subdirectory(resources)
