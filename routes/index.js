@@ -46,6 +46,20 @@ function GetAllFiddles(req, res, next) {
   });
 }
 
+function GetFiddleRaw(req, res, next) {
+  const id = req.params.fiddleId;
+  const manager = req.app.locals.fiddleManager;
+  const fiddle = manager.getFiddleById(id);
+
+  if (!fiddle) {
+    return next();
+  }
+
+  res.set('Content-Type', 'text/plain')
+  res.send(fiddle.content);
+}
+
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
@@ -60,6 +74,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/list', GetAllFiddles);
+router.get('/rawusercontent/:fiddleId', GetFiddleRaw);
 router.get('/:fiddleId', GetFiddle);
 
 module.exports = router;
