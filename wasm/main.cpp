@@ -78,6 +78,15 @@ EMSCRIPTEN_KEEPALIVE std::string sign_source_code(const std::string &text)
   return Controller::saltedHash(QByteArray::fromStdString(text)).toStdString();
 }
 
+EMSCRIPTEN_KEEPALIVE void set_background_color(const std::string &text)
+{
+  auto* c = Controller::instance();
+  if (c)
+  {
+    c->setBackgroundColor(QString::fromStdString(text));
+  }
+}
+
 } // extern "C"
 
 EMSCRIPTEN_BINDINGS(my_module)
@@ -88,6 +97,7 @@ EMSCRIPTEN_BINDINGS(my_module)
   emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
   emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);
   emscripten::function("qmlfiddle_sign", &sign_source_code);
+  emscripten::function("qmlfiddle_setBackgroundColor", &set_background_color);
 }
 
 /*

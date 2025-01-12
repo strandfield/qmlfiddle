@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include "modules/file-utils.h"
+#include "modules/qml-fiddle.h"
 
 #include "lint.h"
 #include "resources.h"
@@ -55,6 +56,7 @@ void Controller::init()
   // Note: qml seems to require singleton names to start with an uppercase letter.
   // We therefore cannot have "fileUtils", but need "FileUtils" instead.
   qmlRegisterSingletonInstance("FileUtils", 1, 0, "FileUtils", new FileUtils(this));
+  qmlRegisterSingletonInstance("QmlFiddle", 1, 0, "QmlFiddle", new QmlFiddle(this));
 
   m_view->setSource(QUrl("qrc:/qmlfiddle/main.qml"));
 
@@ -127,6 +129,11 @@ void Controller::sendMessage(const std::string& str)
   hash.addData(data);
   hash.addData(HASHING_SALT);
   return hash.result().toHex();
+}
+
+void Controller::setBackgroundColor(const QString& colorName)
+{
+  findChild<QmlFiddle*>(Qt::FindDirectChildrenOnly)->setBackgroundColor(colorName);
 }
 
 void Controller::onLintCompleted()

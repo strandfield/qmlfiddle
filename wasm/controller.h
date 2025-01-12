@@ -40,6 +40,8 @@ public:
 
   static QByteArray saltedHash(const QByteArray& data);
 
+  void setBackgroundColor(const QString& colorName);
+
 public:
   emscripten::val onCurrentItemChanged;
   emscripten::val onLintComponentReady;
