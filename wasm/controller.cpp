@@ -4,6 +4,8 @@
 
 #include "controller.h"
 
+#include "modules/file-utils.h"
+
 #include "lint.h"
 #include "resources.h"
 
@@ -49,7 +51,13 @@ void Controller::init()
 {
   m_view = new QQuickView;
   m_view->setResizeMode(QQuickView::SizeRootObjectToView);
+
+  // Note: qml seems to require singleton names to start with an uppercase letter.
+  // We therefore cannot have "fileUtils", but need "FileUtils" instead.
+  qmlRegisterSingletonInstance("FileUtils", 1, 0, "FileUtils", new FileUtils(this));
+
   m_view->setSource(QUrl("qrc:/qmlfiddle/main.qml"));
+
   m_view->show();
 }
 
