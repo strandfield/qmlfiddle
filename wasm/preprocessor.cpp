@@ -6,8 +6,6 @@
 
 #include <QList>
 
-#include <QDebug>
-
 SourcePreprocessor::SourcePreprocessor()
 {
 
@@ -23,6 +21,11 @@ QByteArray SourcePreprocessor::preprocess(const QByteArray& text)
   }
 
   return lines.join('\n');
+}
+
+const std::vector<SourcePreprocessor::Error>& SourcePreprocessor::getErrors() const
+{
+  return m_errors;
 }
 
 const std::vector<SourcePreprocessor::PragmaResource>& SourcePreprocessor::getResources() const
@@ -48,29 +51,35 @@ void SourcePreprocessor::processLine(int lineNum, QByteArray& text)
   }
 
   if (text.indexOf("#pragma", i) != i) {
-    qDebug() << "index of pragma: " << text.indexOf("#pragma", i);
     return;
   }
 
   QList<QByteArray> parts = text.mid(i + 8).simplified().split(' ');
   parts.removeAll(QByteArray(""));
-  qDebug() << parts.size() << " parts";
 
-  if (parts.size() != 2) {
-    return; // TODO: log error instead ?
+  if (parts.size() != 2)
+  {
+    Error e;
+    e.line = lineNum;
+    e.message = QString("could not parse pragma");
+    m_errors.push_back(e);
+    return;
   }
 
   if (parts.at(0) == "resource")
   {
     PragmaResource res;
     res.line = lineNum;
-    res.name = parts.at(1);
+    res.name = QString::fromUtf8(parts.at(1));
     m_resources.push_back(res);
     commentPragma(text, i);
   }
   else
   {
-    // TODO: log error instead ?
+    Error e;
+    e.line = lineNum;
+    e.message = QString("unknown pragma '%1'").arg(QString::fromUtf8(parts.at(0)));
+    m_errors.push_back(e);
     return;
   }
 }

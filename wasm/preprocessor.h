@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QString>
 
 #include <vector>
 
@@ -15,10 +16,18 @@ public:
 
   QByteArray preprocess(const QByteArray& text);
 
+  struct Error
+  {
+    int line;
+    QString message;
+  };
+
+  const std::vector<Error>& getErrors() const;
+
   struct PragmaResource
   {
     int line;
-    QByteArray name;
+    QString name;
   };
 
   const std::vector<PragmaResource>& getResources() const;
@@ -27,5 +36,6 @@ protected:
   void processLine(int lineNum, QByteArray& text);
 
 private:
+  std::vector<Error> m_errors;
   std::vector<PragmaResource> m_resources;
 };

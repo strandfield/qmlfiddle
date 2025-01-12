@@ -67,6 +67,7 @@ void ResourceManager::fetchResource(const QString& name)
 
   gResourceManager = this;
 
+  // TODO: use emscripten_async_wget_data() instead ?
   emscripten_async_wget(path.c_str(), savepath.toStdString().c_str(), onLoadFunc, onErrorFunc);
 }
 

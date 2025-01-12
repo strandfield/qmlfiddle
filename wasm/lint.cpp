@@ -29,52 +29,28 @@ int mapSourcePos(const QString& src, int line, int col)
   return std::max(n + col - 1, 0);
 }
 
-QJsonObject toJson(const QQmlError& err, const QString& sourceCode)
+struct Diagnostic
 {
-  int pos = mapSourcePos(sourceCode, err.line(), err.column());
+  int line;
+  int column = 1;
+  QString message;
+};
 
-  return QJsonObject{
-      {"from", pos},
-      {"to", pos},
-      {"severity", "error"},
-      {"message", err.description()}
-  };
-}
-
-QJsonArray toJson(const QList<QQmlError>& errors, const QString& sourceCode)
-{
-  QJsonArray result;
-
-  for(const QQmlError& err : errors) {
-    result.append(toJson(err,sourceCode));
-  }
-
-  return result;
-}
-
-void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const emscripten::val& resolve)
-{
-  const QString source_code = QString::fromUtf8(data);
-  QJsonArray jsarray = toJson(errors,source_code);
-  std::string result = QJsonDocument(jsarray).toJson(QJsonDocument::Compact).constData();
-  resolve(result);
-}
-
-void sendErrors(const std::vector<SourcePreprocessor::PragmaResource>& missingResources, const QByteArray& data, const emscripten::val& resolve)
+void sendErrors(const std::vector<Diagnostic>& diagnostics, const QByteArray& data, const emscripten::val& resolve)
 {
   const QString source_code = QString::fromUtf8(data);
 
   QJsonArray errlist;
 
-  for(const SourcePreprocessor::PragmaResource& res : missingResources)
+  for(const Diagnostic& d : diagnostics)
   {
-    int pos = mapSourcePos(source_code, res.line, 1);
+    int pos = mapSourcePos(source_code, d.line, d.column);
 
     auto obj = QJsonObject{
         {"from", pos},
         {"to", pos},
         {"severity", "error"},
-        {"message", "no such resource"}
+        {"message", d.message}
     };
 
     errlist.push_back(obj);
@@ -82,6 +58,55 @@ void sendErrors(const std::vector<SourcePreprocessor::PragmaResource>& missingRe
 
   std::string result = QJsonDocument(errlist).toJson(QJsonDocument::Compact).constData();
   resolve(result);
+}
+
+void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const emscripten::val& resolve)
+{
+  std::vector<Diagnostic> diagnostics;
+  diagnostics.reserve(errors.size());
+
+  for(const auto& e : errors)
+  {
+    Diagnostic d;
+    d.line = e.line();
+    d.column = e.column();
+    d.message = e.description();
+    diagnostics.push_back(d);
+  }
+
+  return sendErrors(diagnostics, data, resolve);
+}
+
+void sendErrors(const std::vector<SourcePreprocessor::Error>& errors, const QByteArray& data, const emscripten::val& resolve)
+{
+  std::vector<Diagnostic> diagnostics;
+  diagnostics.reserve(errors.size());
+
+  for(const auto& e : errors)
+  {
+    Diagnostic d;
+    d.line = e.line;
+    d.message = e.message;
+    diagnostics.push_back(d);
+  }
+
+  return sendErrors(diagnostics, data, resolve);
+}
+
+void sendErrors(const std::vector<SourcePreprocessor::PragmaResource>& missingResources, const QByteArray& data, const emscripten::val& resolve)
+{
+  std::vector<Diagnostic> diagnostics;
+  diagnostics.reserve(missingResources.size());
+
+  for(const auto& missing : missingResources)
+  {
+    Diagnostic d;
+    d.line = missing.line;
+    d.message = "no such resource";
+    diagnostics.push_back(d);
+  }
+
+  return sendErrors(diagnostics, data, resolve);
 }
 
 } // namespace
@@ -107,8 +132,11 @@ void QmlSourceLint::start()
   SourcePreprocessor preprocessor;
   QByteArray src = preprocessor.preprocess(m_data);
 
-  qDebug() << src;
-  qDebug()  << preprocessor.getResources().size() << " resources";
+  if (!preprocessor.getErrors().empty())
+  {
+    sendErrors(preprocessor.getErrors(), m_data, m_promiseResolve);
+    Q_EMIT lintCompleted();
+  }
 
   bool fetching_resource = false;
 
@@ -124,7 +152,7 @@ void QmlSourceLint::start()
       if(!info.has_value())
       {
         // TODO: do not fetch the resource, just check it exists ?
-        m_resourceManager.fetchResource(QString::fromUtf8(resource.name));
+        m_resourceManager.fetchResource(resource.name);
       }
     }
     else if (*info == ResourceManager::NotFound)
