@@ -7,14 +7,22 @@
 #include <QObject>
 
 #include <QMap>
+#include <QString>
 
 #include <optional>
+#include <utility> // for std::pair
 
 class ResourceManager : public QObject
 {
   Q_OBJECT
 public:
   ResourceManager(QObject* parent = nullptr);
+
+  enum ResourceType
+  {
+    RccFile,
+    QmlFile,
+  };
 
   enum ResourceState
   {
@@ -23,8 +31,19 @@ public:
     Loaded,
   };
 
-  std::optional<ResourceState> getResourceInfo(const QString& name) const;
-  void fetchResource(const QString& name);
+  struct ResourceInfo
+  {
+    ResourceState state = NotFound;
+    ResourceType type;
+  };
+
+  using ResourceIdentifier = std::pair<QString, ResourceType>;
+
+  std::optional<ResourceInfo> getResourceInfo(const QString& name, ResourceType type = RccFile) const;
+  void fetchRcc(const QString& name);
+  void fetchQml(const QString& fiddleId);
+
+  QString getQmlPath(const QString& fiddleId) const;
 
   bool isReady() const;
 
@@ -37,8 +56,11 @@ Q_SIGNALS:
   void ready();
 
 private:
-  QString getResourceFilePath(const QString& name) const;
+  QString getRccSavePath(const QString& name) const;
+  QString getQmlSavePath(const QString& fiddleId) const;
+  void fetchResource(const std::string& url, ResourceIdentifier resId, const QString& savePath);
 
 private:
-  QMap<QString, ResourceState> m_resourceMap;
+  QMap<ResourceIdentifier, ResourceInfo> m_resourceMap;
+  QMap<QString, ResourceIdentifier> m_pendingFetchMap;
 };

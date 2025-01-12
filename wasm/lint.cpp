@@ -13,6 +13,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <QFile>
+
 namespace
 {
 
@@ -93,20 +95,56 @@ void sendErrors(const std::vector<SourcePreprocessor::Error>& errors, const QByt
   return sendErrors(diagnostics, data, resolve);
 }
 
-void sendErrors(const std::vector<SourcePreprocessor::PragmaResource>& missingResources, const QByteArray& data, const emscripten::val& resolve)
+void appendDiagnostics(std::vector<Diagnostic>& output, const std::vector<SourcePreprocessor::PragmaResource>& missingResources)
 {
-  std::vector<Diagnostic> diagnostics;
-  diagnostics.reserve(missingResources.size());
+  output.reserve(output.size()+ missingResources.size());
 
   for(const auto& missing : missingResources)
   {
     Diagnostic d;
     d.line = missing.line;
     d.message = "no such resource";
-    diagnostics.push_back(d);
+    output.push_back(d);
   }
+}
 
-  return sendErrors(diagnostics, data, resolve);
+void appendDiagnostics(std::vector<Diagnostic>& output, const std::vector<SourcePreprocessor::PragmaImport>& missingImports)
+{
+  output.reserve(output.size()+ missingImports.size());
+
+  for(const auto& missing : missingImports)
+  {
+    Diagnostic d;
+    d.line = missing.line;
+    d.message = "no such fiddle";
+    output.push_back(d);
+  }
+}
+
+void processImports(ResourceManager& resManager, const std::vector<SourcePreprocessor::PragmaImport>& imports)
+{
+  for (const SourcePreprocessor::PragmaImport& element : imports)
+  {
+    const QString srcpath = resManager.getQmlPath(element.fiddleId);
+
+    if (!QFile::exists(srcpath))
+    {
+      qDebug() << srcpath << " does not exist";
+      continue;
+    }
+
+    const QString savepath = "/home/web_user/qml/" + element.componentName + ".qml";
+    if (QFile::exists(savepath))
+    {
+      QFile::remove(savepath);
+    }
+
+    bool ok = QFile::link(srcpath, savepath);
+
+    if (!ok) {
+      qDebug() << "symlink creation failed for " << srcpath << " as " << savepath;
+    }
+  }
 }
 
 } // namespace
@@ -140,37 +178,70 @@ void QmlSourceLint::start()
 
   bool fetching_resource = false;
 
-  std::vector<SourcePreprocessor::PragmaResource> missing_resources;
+  std::vector<Diagnostic> diagnostics;
 
-  for (const SourcePreprocessor::PragmaResource& resource : preprocessor.getResources())
+  // checking "rcc" resources
   {
-    std::optional<ResourceManager::ResourceState> info = m_resourceManager.getResourceInfo(resource.name);
-    if (!info.has_value() || *info == ResourceManager::Loading)
-    {
-      fetching_resource = true;
+    std::vector<SourcePreprocessor::PragmaResource> missing_resources;
 
-      if(!info.has_value())
+    for (const SourcePreprocessor::PragmaResource& resource : preprocessor.getResources())
+    {
+      std::optional<ResourceManager::ResourceInfo> info = m_resourceManager.getResourceInfo(resource.name, ResourceManager::RccFile);
+      if (!info.has_value() || info->state == ResourceManager::Loading)
       {
-        // TODO: do not fetch the resource, just check it exists ?
-        m_resourceManager.fetchResource(resource.name);
+        fetching_resource = true;
+
+        if(!info.has_value())
+        {
+          // TODO: do not fetch the resource, just check it exists ?
+          m_resourceManager.fetchRcc(resource.name);
+        }
+      }
+      else if (info->state == ResourceManager::NotFound)
+      {
+        missing_resources.push_back(resource);
       }
     }
-    else if (*info == ResourceManager::NotFound)
-    {
-      missing_resources.push_back(resource);
-    }
+
+    appendDiagnostics(diagnostics, missing_resources);
   }
 
-
-  if (!missing_resources.empty())
+  // checking imported qml files
   {
-    sendErrors(missing_resources, m_data, m_promiseResolve);
+    std::vector<SourcePreprocessor::PragmaImport> missing_imports;
+
+    for (const SourcePreprocessor::PragmaImport& element : preprocessor.getImports())
+    {
+      std::optional<ResourceManager::ResourceInfo> info = m_resourceManager.getResourceInfo(element.fiddleId, ResourceManager::QmlFile);
+      if (!info.has_value() || info->state == ResourceManager::Loading)
+      {
+        fetching_resource = true;
+
+        if(!info.has_value())
+        {
+          // TODO: do not fetch the resource, just check it exists ?
+          m_resourceManager.fetchQml(element.fiddleId);
+        }
+      }
+      else if (info->state == ResourceManager::NotFound)
+      {
+        missing_imports.push_back(element);
+      }
+    }
+
+    appendDiagnostics(diagnostics, missing_imports);
+  }
+
+  if (!diagnostics.empty())
+  {
+    sendErrors(diagnostics, m_data, m_promiseResolve);
     Q_EMIT lintCompleted();
     return;
   }
 
   if (!fetching_resource)
   {
+    processImports(m_resourceManager, preprocessor.getImports());
     m_data = src;
     compileComponent();
   }
@@ -187,7 +258,7 @@ void QmlSourceLint::compileComponent()
           &QQmlComponent::statusChanged,
           this,
           &QmlSourceLint::onComponentStatusChanged);
-  m_component->setData(m_data, QUrl());
+  m_component->setData(m_data, QUrl::fromLocalFile("/home/web_user/qml/main.qml"));
 }
 
 void QmlSourceLint::onComponentStatusChanged()

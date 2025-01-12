@@ -33,6 +33,10 @@ const std::vector<SourcePreprocessor::PragmaResource>& SourcePreprocessor::getRe
   return m_resources;
 }
 
+const std::vector<SourcePreprocessor::PragmaImport>& SourcePreprocessor::getImports() const
+{
+  return m_imports;
+}
 
 void commentPragma(QByteArray& text, int index)
 {
@@ -57,21 +61,39 @@ void SourcePreprocessor::processLine(int lineNum, QByteArray& text)
   QList<QByteArray> parts = text.mid(i + 8).simplified().split(' ');
   parts.removeAll(QByteArray(""));
 
-  if (parts.size() != 2)
-  {
-    Error e;
-    e.line = lineNum;
-    e.message = QString("could not parse pragma");
-    m_errors.push_back(e);
-    return;
-  }
-
   if (parts.at(0) == "resource")
   {
+    if (parts.size() != 2)
+    {
+      Error e;
+      e.line = lineNum;
+      e.message = QString("could not parse pragma");
+      m_errors.push_back(e);
+      return;
+    }
+
     PragmaResource res;
     res.line = lineNum;
     res.name = QString::fromUtf8(parts.at(1));
     m_resources.push_back(res);
+    commentPragma(text, i);
+  }
+  else if (parts.at(0) == "import")
+  {
+    if (parts.size() != 4 || parts.at(2) != "as")
+    {
+      Error e;
+      e.line = lineNum;
+      e.message = QString("could not parse pragma");
+      m_errors.push_back(e);
+      return;
+    }
+
+    PragmaImport res;
+    res.line = lineNum;
+    res.fiddleId = QString::fromUtf8(parts.at(1));
+    res.componentName = QString::fromUtf8(parts.at(3));
+    m_imports.push_back(res);
     commentPragma(text, i);
   }
   else

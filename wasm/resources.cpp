@@ -41,9 +41,9 @@ ResourceManager::ResourceManager(QObject* parent) : QObject(parent)
 }
 
 
-std::optional<ResourceManager::ResourceState> ResourceManager::getResourceInfo(const QString& name) const
+std::optional<ResourceManager::ResourceInfo> ResourceManager::getResourceInfo(const QString& name,  ResourceType type) const
 {
-  auto it = m_resourceMap.find(getResourceFilePath(name));
+  auto it = m_resourceMap.find(ResourceIdentifier(name, type));
 
   if (it == m_resourceMap.end())
   {
@@ -53,46 +53,86 @@ std::optional<ResourceManager::ResourceState> ResourceManager::getResourceInfo(c
   return *it;
 }
 
-void ResourceManager::fetchResource(const QString& name)
+void ResourceManager::fetchRcc(const QString& name)
 {
-  if (getResourceInfo(name).has_value())
+  if (getResourceInfo(name, RccFile).has_value())
   {
     return;
   }
 
-  std::string path = "/" + std::string(RESOURCE_DIR) + "/" + name.toStdString() + RESOURCE_FILE_EXTENSION;
-  QString savepath = getResourceFilePath(name);
+  const std::string url = "/" + std::string(RESOURCE_DIR) + "/" + name.toStdString() + RESOURCE_FILE_EXTENSION;
+  const QString savepath = getRccSavePath(name);
 
-  m_resourceMap[savepath] = Loading;
+  fetchResource(url, ResourceIdentifier(name, RccFile), savepath);
+}
+
+void ResourceManager::fetchQml(const QString& fiddleId)
+{
+  if (getResourceInfo(fiddleId, QmlFile).has_value())
+  {
+    return;
+  }
+
+  const std::string url = "/rawusercontent/" + fiddleId.toStdString();
+  const QString savepath = getQmlSavePath(fiddleId);
+
+  fetchResource(url, ResourceIdentifier(fiddleId, QmlFile), savepath);
+}
+
+QString ResourceManager::getQmlPath(const QString& fiddleId) const
+{
+  return getQmlSavePath(fiddleId);
+}
+
+void ResourceManager::fetchResource(const std::string& url, ResourceIdentifier resId, const QString& savePath)
+{
+  m_pendingFetchMap[savePath] = resId;
+
+  ResourceInfo& info = m_resourceMap[resId];
+  info.state = Loading;
+  info.type = resId.second;
 
   gResourceManager = this;
 
   // TODO: use emscripten_async_wget_data() instead ?
-  emscripten_async_wget(path.c_str(), savepath.toStdString().c_str(), onLoadFunc, onErrorFunc);
+  emscripten_async_wget(url.c_str(), savePath.toStdString().c_str(), onLoadFunc, onErrorFunc);
 }
 
 bool ResourceManager::isReady() const
 {
-  return std::all_of(m_resourceMap.begin(), m_resourceMap.end(), [](ResourceState s) {
-    return s != ResourceState::Loading;
+  return std::all_of(m_resourceMap.begin(), m_resourceMap.end(), [](const ResourceInfo& info) {
+    return info.state != ResourceState::Loading;
   });
 }
 
-QString ResourceManager::getResourceFilePath(const QString& name) const
+QString ResourceManager::getRccSavePath(const QString& name) const
 {
   return "/home/web_user/resources/" + name + RESOURCE_FILE_EXTENSION;
 }
 
+QString ResourceManager::getQmlSavePath(const QString& fiddleId) const
+{
+  return "/home/web_user/resources/" + fiddleId + ".qml";
+}
+
 void ResourceManager::onLoad(const char* filename, Passkey)
 {
-  QString path{filename};
-  m_resourceMap[path] = Loaded;
+  const QString savepath{filename};
 
-  bool success = QResource::registerResource(path);
+  auto it = m_pendingFetchMap.constFind(savepath);
+  const ResourceIdentifier resid = *it;
+  m_pendingFetchMap.erase(it);
 
-  if(!success)
+  m_resourceMap[resid].state = Loaded;
+
+  if (m_resourceMap[resid].type == RccFile)
   {
-    qDebug() << "failed to register resource " << path;
+    bool success = QResource::registerResource(savepath);
+
+    if(!success)
+    {
+      qDebug() << "failed to register resource " << savepath;
+    }
   }
 
   if (isReady())
@@ -103,8 +143,13 @@ void ResourceManager::onLoad(const char* filename, Passkey)
 
 void ResourceManager::onError(const char* filename, Passkey)
 {
-  QString path{filename};
-  m_resourceMap[path] = NotFound;
+  const QString savepath{filename};
+
+  auto it = m_pendingFetchMap.constFind(savepath);
+  const ResourceIdentifier resid = *it;
+  m_pendingFetchMap.erase(it);
+
+  m_resourceMap[resid].state = NotFound;
 
   if (isReady())
   {
