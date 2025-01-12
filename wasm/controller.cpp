@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include "lint.h"
+#include "resources.h"
 
 #include <QQmlComponent>
 #include <QQmlEngine>
@@ -32,9 +33,16 @@ Controller* Controller::g_globalInstance = nullptr;
 Controller::Controller(QObject *parent)
     : QObject(parent)
 {
+  m_resourceManager = new ResourceManager(this);
+
   qInstallMessageHandler(myMessageHandler);
 
   g_globalInstance = this;
+}
+
+ResourceManager& Controller::resourceManager() const
+{
+  return *m_resourceManager;
 }
 
 void Controller::init()
@@ -57,7 +65,7 @@ QQmlEngine* Controller::engine() const
 
 void Controller::lintSource(const emscripten::val& promiseResolve, const std::string &str)
 {
-  auto* lint = new QmlSourceLint(*engine(), promiseResolve, str.c_str(), this);
+  auto* lint = new QmlSourceLint(*engine(), resourceManager(), promiseResolve, str.c_str(), this);
   connect(lint, &QmlSourceLint::lintCompleted, this, &Controller::onLintCompleted);
   lint->start();
 }

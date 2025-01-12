@@ -4,6 +4,9 @@
 
 #include "lint.h"
 
+#include "preprocessor.h"
+#include "resources.h"
+
 #include <QQmlComponent>
 
 #include <QJsonArray>
@@ -49,7 +52,6 @@ QJsonArray toJson(const QList<QQmlError>& errors, const QString& sourceCode)
   return result;
 }
 
-
 void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const emscripten::val& resolve)
 {
   const QString source_code = QString::fromUtf8(data);
@@ -58,12 +60,37 @@ void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const em
   resolve(result);
 }
 
+void sendErrors(const std::vector<SourcePreprocessor::PragmaResource>& missingResources, const QByteArray& data, const emscripten::val& resolve)
+{
+  const QString source_code = QString::fromUtf8(data);
+
+  QJsonArray errlist;
+
+  for(const SourcePreprocessor::PragmaResource& res : missingResources)
+  {
+    int pos = mapSourcePos(source_code, res.line, 1);
+
+    auto obj = QJsonObject{
+        {"from", pos},
+        {"to", pos},
+        {"severity", "error"},
+        {"message", "no such resource"}
+    };
+
+    errlist.push_back(obj);
+  }
+
+  std::string result = QJsonDocument(errlist).toJson(QJsonDocument::Compact).constData();
+  resolve(result);
+}
+
 } // namespace
 
 
-QmlSourceLint::QmlSourceLint(QQmlEngine& qmlEngine, const emscripten::val& resolveFunc, const QByteArray& src, QObject* parent)
+QmlSourceLint::QmlSourceLint(QQmlEngine& qmlEngine, ResourceManager& resourceManager, const emscripten::val& resolveFunc, const QByteArray& src, QObject* parent)
     : QObject(parent),
     m_qmlEngine(qmlEngine),
+    m_resourceManager(resourceManager),
     m_promiseResolve(resolveFunc),
     m_data(src)
 {
@@ -76,6 +103,56 @@ QQmlComponent* QmlSourceLint::component() const
 }
 
 void QmlSourceLint::start()
+{
+  SourcePreprocessor preprocessor;
+  QByteArray src = preprocessor.preprocess(m_data);
+
+  qDebug() << src;
+  qDebug()  << preprocessor.getResources().size() << " resources";
+
+  bool fetching_resource = false;
+
+  std::vector<SourcePreprocessor::PragmaResource> missing_resources;
+
+  for (const SourcePreprocessor::PragmaResource& resource : preprocessor.getResources())
+  {
+    std::optional<ResourceManager::ResourceState> info = m_resourceManager.getResourceInfo(resource.name);
+    if (!info.has_value() || *info == ResourceManager::Loading)
+    {
+      fetching_resource = true;
+
+      if(!info.has_value())
+      {
+        // TODO: do not fetch the resource, just check it exists ?
+        m_resourceManager.fetchResource(QString::fromUtf8(resource.name));
+      }
+    }
+    else if (*info == ResourceManager::NotFound)
+    {
+      missing_resources.push_back(resource);
+    }
+  }
+
+
+  if (!missing_resources.empty())
+  {
+    sendErrors(missing_resources, m_data, m_promiseResolve);
+    Q_EMIT lintCompleted();
+    return;
+  }
+
+  if (!fetching_resource)
+  {
+    m_data = src;
+    compileComponent();
+  }
+  else
+  {
+    connect(&m_resourceManager, &ResourceManager::ready, this, &QmlSourceLint::start);
+  }
+}
+
+void QmlSourceLint::compileComponent()
 {
   m_component = new QQmlComponent(&m_qmlEngine, this);
   connect(m_component,

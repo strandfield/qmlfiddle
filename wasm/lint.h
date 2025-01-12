@@ -11,11 +11,13 @@
 class QQmlComponent;
 class QQmlEngine;
 
+class ResourceManager;
+
 class QmlSourceLint : public QObject
 {
   Q_OBJECT
 public:
-  QmlSourceLint(QQmlEngine& qmlEngine, const emscripten::val& resolveFunc, const QByteArray& src, QObject* parent = nullptr);
+  QmlSourceLint(QQmlEngine& qmlEngine, ResourceManager& resourceManager, const emscripten::val& resolveFunc, const QByteArray& src, QObject* parent = nullptr);
 
   void start();
 
@@ -25,11 +27,14 @@ Q_SIGNALS:
   void lintCompleted();
 
 protected Q_SLOTS:
-
   void onComponentStatusChanged();
 
 private:
+  void compileComponent();
+
+private:
   QQmlEngine& m_qmlEngine;
+  ResourceManager& m_resourceManager;
   emscripten::val m_promiseResolve;
   QByteArray m_data;
   QQmlComponent* m_component = nullptr;

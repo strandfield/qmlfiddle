@@ -13,11 +13,15 @@ class QQmlEngine;
 class QQuickItem;
 class QQuickView;
 
+class ResourceManager;
+
 class Controller : public QObject
 {
   Q_OBJECT
 public:
   explicit Controller(QObject* parent = nullptr);
+
+  ResourceManager& resourceManager() const;
 
   void init();
 
@@ -55,6 +59,7 @@ private:
   static Controller* g_globalInstance;
 
 private:
+  ResourceManager* m_resourceManager = nullptr;
   QQuickView* m_view = nullptr;
   QQmlComponent* m_lint_component = nullptr;
   QQmlComponent* m_component = nullptr;
