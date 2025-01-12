@@ -13,10 +13,15 @@ qt_standard_project_setup(REQUIRES 6.8)
 # See https://doc.qt.io/qt-6/resources.html
 set(CMAKE_AUTORCC ON)
 
+file(GLOB SOURCE_FILES "wasm/*.cpp")
+file(GLOB HEADER_FILES "wasm/*.h")
+
 qt_add_executable(qmlfiddle
-    main.cpp
-    qmlfiddle.qrc
+    ${SOURCE_FILES} ${HEADER_FILES}
+    "wasm/qmlfiddle.qrc"
 )
+
+#set_target_properties(qmlfiddle PROPERTIES OUTPUT_NAME "qmlfiddle-6.8")
 
 if(DEFINED HASHING_SALT)
   target_compile_definitions(qmlfiddle PRIVATE HASHING_SALT="${HASHING_SALT}")
@@ -63,3 +68,11 @@ install(FILES
     "${CMAKE_BINARY_DIR}/qtlogo.svg"
     DESTINATION "${CMAKE_CURRENT_LIST_DIR}/dist"
 )
+
+if (NOT DEFINED RESOURCE_DIR)
+  set(RESOURCE_DIR "resources")
+endif()
+
+target_compile_definitions(qmlfiddle PRIVATE RESOURCE_DIR="${RESOURCE_DIR}")
+
+add_subdirectory(resources)

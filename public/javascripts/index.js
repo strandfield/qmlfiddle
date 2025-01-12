@@ -153,6 +153,10 @@ function ForkFiddle() {
     GetSaveButton().style.display = 'inline';
 }
 
+function testAsyncGet() {
+    qtInstance.qmlfiddle_asyncGet();
+}
+
 async function init()
 {
     hideConsole();
