@@ -32,10 +32,20 @@ public:
 
   const std::vector<PragmaResource>& getResources() const;
 
+  struct PragmaImport
+  {
+    int line;
+    QString fiddleId;
+    QString componentName;
+  };
+
+  const std::vector<PragmaImport>& getImports() const;
+
 protected:
   void processLine(int lineNum, QByteArray& text);
 
 private:
   std::vector<Error> m_errors;
   std::vector<PragmaResource> m_resources;
+  std::vector<PragmaImport> m_imports;
 };

@@ -17,6 +17,8 @@
 
 #include <QCryptographicHash>
 
+#include <QDir>
+
 #include <QDebug>
 
 #ifndef HASHING_SALT
@@ -52,6 +54,15 @@ void Controller::init()
 {
   m_view = new QQuickView;
   m_view->setResizeMode(QQuickView::SizeRootObjectToView);
+
+  QDir home{"/home/web_user"};
+
+  if(!home.exists("qml"))
+  {
+    home.mkdir("qml");
+  }
+
+  m_view->engine()->addImportPath("/home/web_user/qml");
 
   // Note: qml seems to require singleton names to start with an uppercase letter.
   // We therefore cannot have "fileUtils", but need "FileUtils" instead.
