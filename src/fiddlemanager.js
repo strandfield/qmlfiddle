@@ -50,7 +50,7 @@ class FiddleManager
 
     createFiddle(title, content) {
         let id = this.#generateFiddleId();
-        while (this.getFiddleById(id) != undefined) {
+        while (id < 4096 || this.getFiddleById(id) != undefined) {
             id = this.#generateFiddleId();
         }
 
