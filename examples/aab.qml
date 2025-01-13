@@ -1,24 +1,60 @@
 // Visual Studio code icons pack
 
-import QtQuick
-
 #pragma resource vscode-icons
-  
-Column {
-    anchors.centerIn: parent
 
-    function __getIconPath(name, theme = "light") {
-      return `qrc:/vscode-icons/icons/${theme}/${name}.svg`;
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+
+import FileUtils
+import QmlFiddle
+
+ColumnLayout {
+    anchors.fill: parent
+    anchors.margins: 48
+    spacing: 48
+
+
+    property string theme: "light"
+
+    function __getIconPath(name) {
+        return `qrc:/vscode-icons/icons/${theme}/${name}`;
     }
 
-    spacing: 16
-
-    Image {
-        source: __getIconPath("symbol-file")
+    function __updateBgColor() {
+        QmlFiddle.backgroundColor = (theme == "light" ? "white" : "black");
     }
 
-    Image {
-        source:  __getIconPath("symbol-class")
+    Button {
+        Layout.alignment: Qt.AlignHCenter
+        text: "Switch to " + (theme == "light" ? "Dark" : "Light")
+
+        onClicked: {
+            theme = (theme == "light" ? "dark" : "light")
+            __updateBgColor();
+        }
     }
 
+    Flow {
+        Layout.fillWidth: true
+        spacing: 10
+
+
+        Repeater {
+            model: FileUtils.readdir(`:/vscode-icons/icons/${theme}`)
+
+            delegate: Image {
+                source: __getIconPath(modelData)
+            }
+        }
+    }
+
+    Item {
+        id: stretchItem
+        Layout.fillHeight: true
+    }
+
+    Component.onCompleted: {
+        __updateBgColor();
+    }
 }
