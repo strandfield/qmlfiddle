@@ -147,6 +147,7 @@ const db = getOrCreateFiddleDatabase(DataDir);
 
 const FiddleManager = require("./src/fiddlemanager");
 app.locals.fiddleManager = new FiddleManager(db);
+app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

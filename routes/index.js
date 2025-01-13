@@ -2,24 +2,18 @@ var express = require('express');
 
 var router = express.Router();
 
-const defaultDocument = `import QtQuick
-  
-Column {
-    anchors.centerIn: parent
+const path = require('path');
+const fs = require('node:fs');
 
-    spacing: 16
+let defaultDocument = "";
 
-    Image {
-        source: "qrc:/assets/qtlogo.svg"
-    }
-
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: "❤️ You are cute! ❤️"
-        font.pointSize: 18
-    }
-}
-`;
+fs.readFile(path.join(__dirname, "../examples/default.qml"), 'utf8', (err, data) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  defaultDocument = data;
+});
 
 function GetFiddle(req, res, next) {
   const id = req.params.fiddleId;

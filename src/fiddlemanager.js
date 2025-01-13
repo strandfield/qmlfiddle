@@ -50,7 +50,7 @@ class FiddleManager
 
     createFiddle(title, content) {
         let id = this.#generateFiddleId();
-        while (this.getFiddleById(id) != undefined) {
+        while (id < 4096 || this.getFiddleById(id) != undefined) {
             id = this.#generateFiddleId();
         }
 
@@ -110,6 +110,45 @@ class FiddleManager
             content: content,
             pepper: pepper
         };
+    }
+
+    insertOrUpdateFiddle(id, title, content) {
+        id = this.#unwrap(id);
+        const pepper = this.#generatePepper();
+        let stmt = this.database.prepare(`INSERT OR REPLACE INTO fiddle(id, title, content, pepper) VALUES(?,?,?,?)`);
+        stmt.run(id, title, content, pepper);
+    }
+
+    loadFiddlesFromDirectory(dirPath) {
+        const path = require('path');
+        const fs = require('node:fs');
+
+        const entries = fs.readdirSync(dirPath);
+
+        for (const fileName of entries) {
+            if (!fileName.endsWith(".qml") || fileName == "default.qml") {
+                continue;
+            }
+
+            const name_wo_ext = path.basename(fileName, ".qml");
+            const id = Number.parseInt(name_wo_ext, 16);
+
+            if (id === NaN) {
+                console.error(`could not parse fiddle id ${name_wo_ext}`);
+                continue;
+            }
+
+            const filepath = path.join(dirPath, fileName);
+            let content = fs.readFileSync(filepath, 'utf-8');
+            let title = "";
+            if (content.startsWith("//")) {
+                let i = content.indexOf("\n");
+                title = content.substring(2, i).trim();
+                content = content.substring(i+1);
+            }
+
+            this.insertOrUpdateFiddle(id, title, content);
+        }
     }
 };
 

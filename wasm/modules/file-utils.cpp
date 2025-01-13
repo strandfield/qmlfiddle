@@ -4,6 +4,7 @@
 
 #include "file-utils.h"
 
+#include <QDir>
 #include <QFile>
 
 FileUtils::FileUtils(QObject* parent)
@@ -15,4 +16,9 @@ FileUtils::FileUtils(QObject* parent)
 bool FileUtils::exists(const QString& filePath) const
 {
   return QFile::exists(filePath);
+}
+
+QStringList FileUtils::readdir(const QString& dirPath) const
+{
+  return QDir(dirPath).entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 }

@@ -13,4 +13,6 @@ public:
   explicit FileUtils(QObject* parent = nullptr);
 
   Q_INVOKABLE bool exists(const QString& filePath) const;
+
+  Q_INVOKABLE QStringList readdir(const QString& dirPath) const;
 };
