@@ -2,6 +2,7 @@ import { EditorView, basicSetup } from "codemirror"
 import { javascript } from "@codemirror/lang-javascript"
 import { keymap } from "@codemirror/view"
 import { linter, lintGutter } from "@codemirror/lint"
+import { indentUnit } from "@codemirror/language"
 import { indentWithTab } from "@codemirror/commands"
 import { Compartment } from "@codemirror/state"
 
@@ -19,7 +20,7 @@ const nullLinter = linter(view => []);
 
 function createEditor(parentElement) {
 	return new EditorView({
-		extensions: [basicSetup, keymap.of([indentWithTab]), javascript(), sourceLinter.of(nullLinter), lintGutter()],
+		extensions: [basicSetup, indentUnit.of("    "), keymap.of([indentWithTab]), javascript(), sourceLinter.of(nullLinter), lintGutter()],
 		parent: parentElement
 	});
 }
