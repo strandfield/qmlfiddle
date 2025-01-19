@@ -258,7 +258,18 @@ void QmlSourceLint::compileComponent()
           &QQmlComponent::statusChanged,
           this,
           &QmlSourceLint::onComponentStatusChanged);
-  m_component->setData(m_data, QUrl::fromLocalFile("/home/web_user/qml/main.qml"));
+
+  const QString filepath{"/home/web_user/qml/main.qml"};
+  // apparently we need to write the file if we want to have inline-components working
+  QFile file {filepath};
+  if (!file.open(QIODevice::ReadWrite | QIODevice::Truncate))
+  {
+    qDebug() << "could not open " << filepath;
+  }
+  file.write(m_data);
+  file.close();
+
+  m_component->setData(m_data, QUrl::fromLocalFile(filepath));
 }
 
 void QmlSourceLint::onComponentStatusChanged()
