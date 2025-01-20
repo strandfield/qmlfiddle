@@ -1,6 +1,6 @@
 // Visual Studio code icons pack
 
-#pragma resource vscode-icons
+pragma FetchResource: "vscode-icons"
 
 import QtQuick
 import QtQuick.Layouts

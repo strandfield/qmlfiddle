@@ -50,41 +50,53 @@ void SourcePreprocessor::processLine(int lineNum, QByteArray& text)
 
   while(i < text.length() && QChar(text[i]).isSpace()) ++i;
 
-  if (i == text.length() || text[i] != '#') {
+  if (text.indexOf("pragma ", i) != i) {
     return;
   }
 
-  if (text.indexOf("#pragma", i) != i) {
+  const int j = i+7;
+  int k = text.indexOf(':', i+7);
+
+  if (k == -1) {
     return;
   }
 
-  QList<QByteArray> parts = text.mid(i + 8).simplified().split(' ');
-  parts.removeAll(QByteArray(""));
+  QByteArray name = text.mid(j, k-j).trimmed();
 
-  if (parts.at(0) == "resource")
+  if (name != "FetchResource" && name != "ImportFiddle")
   {
-    if (parts.size() != 2)
-    {
-      Error e;
-      e.line = lineNum;
-      e.message = QString("could not parse pragma");
-      m_errors.push_back(e);
-      return;
-    }
+    return;
+  }
 
+  k = text.indexOf('"', k+1);
+  const int l = text.indexOf('"', k+1);
+
+  if (k == -1 || l == -1) {
+    Error e;
+    e.line = lineNum;
+    e.message = QString("bad syntax for pragma");
+    m_errors.push_back(e);
+    return;
+  }
+
+  QByteArray value = text.mid(k+1, l - (k+1));
+
+  if (name == "FetchResource")
+  {
     PragmaResource res;
     res.line = lineNum;
-    res.name = QString::fromUtf8(parts.at(1));
+    res.name = QString::fromUtf8(value);
     m_resources.push_back(res);
     commentPragma(text, i);
   }
-  else if (parts.at(0) == "import")
+  else if (name == "ImportFiddle")
   {
-    if (parts.size() != 4 || parts.at(2) != "as")
-    {
+    QByteArrayList parts = value.split('@');
+
+    if(parts.size() != 2) {
       Error e;
       e.line = lineNum;
-      e.message = QString("could not parse pragma");
+      e.message = QString("bad syntax for pragma");
       m_errors.push_back(e);
       return;
     }
@@ -92,16 +104,8 @@ void SourcePreprocessor::processLine(int lineNum, QByteArray& text)
     PragmaImport res;
     res.line = lineNum;
     res.fiddleId = QString::fromUtf8(parts.at(1));
-    res.componentName = QString::fromUtf8(parts.at(3));
+    res.componentName = QString::fromUtf8(parts.at(0));
     m_imports.push_back(res);
     commentPragma(text, i);
-  }
-  else
-  {
-    Error e;
-    e.line = lineNum;
-    e.message = QString("unknown pragma '%1'").arg(QString::fromUtf8(parts.at(0)));
-    m_errors.push_back(e);
-    return;
   }
 }
