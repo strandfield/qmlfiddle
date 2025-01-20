@@ -1,0 +1,109 @@
+extends layout
+
+block content
+  h1 Documentation
+  
+  p. 
+    QML Fiddle provides a Web-browser based environment for compiling and previewing simple QML documents. #[br]
+    The name is an obvious reference to the quite popular JSFiddle.
+
+  p. 
+    The engine is power by #[a(href="https://doc.qt.io/qt-6/wasm.html") Qt for WebAssembly].
+    The source code of the project is available on #[a(href="https://github.com/strandfield/qmlfiddle") GitHub]
+    and is distributed under the GPLv3 license (as required by the use of Qt for WebAssembly).
+
+  h2 Qt version 
+
+  p The engine runs on Qt 6.8.
+
+  h2 Supported QML modules
+
+  p The following QML modules are supported: 
+
+  ul 
+    li QtQuick
+    li QtQuick.Controls 
+    li QtQuick.Layouts
+
+  h2 Extra modules 
+
+  p QMLFiddle provides some extra modules.
+
+  h3 FileUtils 
+
+  p This module provides filesystem-related utilities.
+  p. 
+    Because the code runs in the Web browser, this is not the computer filesystem but rather a virtual filesystem.
+    See the emscripten #[a(href="https://emscripten.org/docs/porting/files/file_systems_overview.html") File System Overview]
+    for more information.
+
+  pre import FileUtils
+
+  h4 FileUtils.exists(filePath : string) : bool
+
+  p Returns whether a file exists.
+
+  h4 FileUtils.readdir(dirPath : string) : #{'list<string>'}
+
+  p Returns a list of file and directory names in a directory.
+
+  h3 QmlFiddle 
+
+  p This module provides functions for tweaking the engine.
+
+  pre import QmlFiddle
+
+  h4 QmlFiddle.backgroundColor : color
+
+  p This property can be used to get or set the background color of the QML window.
+
+  h4 QmlFiddle.resetBackgroundColor() : void
+
+  p This function resets the background color to its default value.
+
+  h2 Built-in resources 
+
+  p The engine integrates some assets which are available by default. These are listed in the follwing table:
+
+  table 
+    tbody
+      tr 
+        th URL 
+        th Description 
+      tr
+        td qrc:/assets/qtlogo.svg
+        td The Qt logo
+
+  h2 Importable resources 
+
+  p Because resources integrated by default must be shipped whether they are used are not, there are very few of them.
+  p. 
+    If needed, extra resources can be downloaded on the fly. 
+    To do so, a "FetchResource" pragma must be placed at the beginning of the document.
+    For example: 
+  pre pragma FetchResource: "vscode-icons"
+
+  p The following table lists the available resource packs:
+
+  table 
+    tbody
+      tr 
+        th Name 
+        th Description 
+      tr
+        td vscode-icons
+        td Visual Studio Code icons pack
+
+  h2 Importing another fiddle 
+
+  p.
+    It is possible to reuse existing fiddles by dynamically importing them.
+    To do so, a ImportFiddle pragma must be placed at the beginning of the document.
+    Example: 
+  pre pragma ImportFiddle: "ExternalComponent@aef29"
+  p.
+    The string literal used in the pragma defines both the name under which the component
+    becomes available and the id of the fiddle (separated by the "@" character).
+    In the above example: 
+    "aef29" is id of the fiddle; 
+    "ExternalComponent" is the name to use to refer to the component.

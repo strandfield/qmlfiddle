@@ -42,7 +42,13 @@ function GetAllFiddles(req, res, next) {
 
 function GetPrivacyPolicyPage(req, res, next) {
   res.render('privacy', { 
-    title: 'QML Fiddle'
+    title: 'Privacy Policy - QML Fiddle'
+  });
+}
+
+function GetDocumentationPage(req, res, next) {
+  res.render('documentation', { 
+    title: 'Documentation - QML Fiddle'
   });
 }
 
@@ -75,6 +81,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/list', GetAllFiddles);
 router.get('/privacy.html', GetPrivacyPolicyPage);
+router.get('/documentation.html', GetDocumentationPage);
 router.get('/rawusercontent/:fiddleId', GetFiddleRaw);
 router.get('/:fiddleId', GetFiddle);
 
