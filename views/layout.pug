@@ -3,5 +3,20 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/layout.css')
   body
-    block content
+    div(id="layout-container")
+      header(id="header") 
+        a(href="/")
+          img(src="/favicon.ico", class="d-block") 
+        div(class="flex-grow-1")
+      main(id="content")
+        block content
+      footer(id="footer") 
+        ul(class="hmenu", style="margin-left: auto; margin-right: 1em;")
+          li
+            a(href="/privacy.html", title="Privacy policy")
+              img(width="16", src="/images/biscuit.svg")
+          li
+            a(href="https://github.com/strandfield/qmlfiddle")
+              img(width="16", src="/images/github-mark-white.svg")

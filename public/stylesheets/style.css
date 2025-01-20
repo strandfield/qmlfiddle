@@ -1,4 +1,14 @@
 
+#header {
+  height: 36px;
+  display:flex;
+  align-items: center;
+  gap: 12px;
+  background-color:#484444;
+  color: white;
+  padding-left: 1ex;
+}
+
 .d-flex {
   display: flex;
 }

@@ -56,7 +56,8 @@ body {
 
 .hmenu > li {
   display: inline-block;
-  /* You can also add some margins here to make it look prettier */
+  margin-left: 0.25em;
+  margin-right: 0.25em;
 }
 
 .hmenu a {
