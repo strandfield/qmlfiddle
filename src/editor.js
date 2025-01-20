@@ -1,10 +1,20 @@
 import { EditorView, basicSetup } from "codemirror"
-import { javascript } from "@codemirror/lang-javascript"
+import { qml } from "codemirror-lang-qml"
 import { keymap } from "@codemirror/view"
 import { linter, lintGutter } from "@codemirror/lint"
-import { indentUnit } from "@codemirror/language"
+import { indentUnit, HighlightStyle, syntaxHighlighting,  defaultHighlightStyle } from "@codemirror/language"
 import { indentWithTab } from "@codemirror/commands"
 import { Compartment } from "@codemirror/state"
+import {tags} from "@lezer/highlight"
+
+const myHighlightStyle = HighlightStyle.define( defaultHighlightStyle.specs.concat([
+	{ tag: tags.keyword, color: "#808000"},
+	{ tag: tags.number, color: "#000080"},
+	{ tag: tags.string, color: "#008000"},
+	{ tag: tags.typeName, color: "#800080"},
+	{ tag: tags.attributeName, color: "#800000"}
+]));
+
 
 // Indent with tabs: https://codemirror.net/examples/tab/
 // Lint: https://codemirror.net/examples/lint/
@@ -20,7 +30,7 @@ const nullLinter = linter(view => []);
 
 function createEditor(parentElement) {
 	return new EditorView({
-		extensions: [basicSetup, indentUnit.of("    "), keymap.of([indentWithTab]), javascript(), sourceLinter.of(nullLinter), lintGutter()],
+		extensions: [basicSetup,  syntaxHighlighting(myHighlightStyle), indentUnit.of("    "), keymap.of([indentWithTab]), qml(), sourceLinter.of(nullLinter), lintGutter()],
 		parent: parentElement
 	});
 }
