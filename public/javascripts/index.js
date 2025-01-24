@@ -205,10 +205,6 @@ function ForkFiddle() {
     SetActionButtonVisible(GetSaveButton(), true);
 }
 
-function testAsyncGet() {
-    qtInstance.qmlfiddle_asyncGet();
-}
-
 async function init()
 {
     hideDevTools();
