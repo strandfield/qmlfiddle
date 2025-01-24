@@ -30,12 +30,10 @@ html
             pre(id="hardcoded-fiddle")= defaultDocument.content
           div(id="screen")
             div(id="screen-overlay")
-              figure(style="overflow:visible;", id="qtspinner")
-                center(style="line-height:150%")
-                  img(src="qtlogo.svg", width="320", height="200", style="display:block")
-                  strong Qt for WebAssembly: qmlfiddle
-                  div(id="qtstatus")
-                  noscript JavaScript is disabled. Please enable JavaScript to use this application.
+              div(id="qtspinner")
+                strong Qt for WebAssembly: qmlfiddle
+                div(id="qtstatus")
+                noscript JavaScript is disabled. Please enable JavaScript to use this application.
         div(id="devtools")
           div(id="devtools-header")
             div(id="devtools-header-button", selected="true") 

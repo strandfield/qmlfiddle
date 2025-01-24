@@ -69,10 +69,9 @@ body {
   height: 100%;
   width: 100%;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #aaaaaa;
+  background-color: #222222;
+  color: white;
+  font-family: 'Lucida Console', Courier, monospace;
 }
 
 #code {
@@ -115,6 +114,7 @@ body {
 
 #qtspinner {
   margin: 0;
+  padding: 1em;
 }
 
 #hardcoded-fiddle {

@@ -75,7 +75,7 @@ function toggleDevTools() {
 /* WASM event handlers */
 
 function onCurrentItemChanged() {
-    writeConsole("New item mounted");
+    console.log("new item mounted");
 }
 
 function onLintComponentIsReady() {
