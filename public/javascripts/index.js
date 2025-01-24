@@ -11,73 +11,121 @@ function onDragCallback() {
     resizeWasmScreen();
 }
 
-window.Split(['#code', '#output'], {
+window.Split(['#code', '#screen'], {
     onDrag: onDragCallback
 });
 
-var consoleSplit = null;
+var devtoolsSplit = null;
 
-function showConsole() {
-    if (consoleSplit) {
+function showDevTools() {
+    if (devtoolsSplit) {
         return;
     }
 
-    let element = document.getElementById("console");
-    element.style.display = 'block';
-
-    consoleSplit = window.Split(['#screen', '#console'], {
+    devtoolsSplit = window.Split(['#maincontent', '#devtools'], {
         onDrag: onDragCallback,
         direction: 'vertical',
         sizes: [75, 25],
+        gutterSize: 4,
+        cursor: "ns-resize"
     });
 
+    let element = document.getElementById("devtools");
+    element.style.display = 'block';
+
     resizeWasmScreen();
+    disableTerminalActivityIndicator();
 }
 
-function hideConsole() {
-    let element = document.getElementById("console");
+function hideDevTools() {
+    let element = document.getElementById("devtools");
     element.style.display = 'none';
 
-    element = document.getElementById("screen");
-    element.style.height = '100%';
-    resizeWasmScreen();
-
-    if (!consoleSplit) {
-        return;
+    if (devtoolsSplit) {
+        devtoolsSplit.destroy();
+        devtoolsSplit = null;
     }
 
-    consoleSplit.destroy();
-    consoleSplit = null;
+    element = document.getElementById("maincontent");
+    element.style.height = '100%';
+
+    resizeWasmScreen();
 }
 
-function writeConsole(text) {
-    let out = document.getElementById("console");
+function devToolsVisible() {
+    return devtoolsSplit != null;
+}
+
+function writeConsole(text, ghost=false) {
+    let out = document.getElementById("console-output");
     let entry = document.createElement("DIV");
+    entry.classList.add("log-entry");
     entry.innerText = text;
     out.appendChild(entry);
+
+    if (!ghost && !devToolsVisible()) {
+        enableTerminalActivityIndicator();
+    }
 }
 
 function clearConsole() {
-    let out = document.getElementById("console");
+    let out = document.getElementById("console-output");
     out.innerHTML = '';
+}
+
+function toggleDevTools() {
+    let element = document.getElementById("devtools");
+    if (element.style.display == 'none') {
+        showDevTools();
+    } else {
+        hideDevTools();
+    }
+}
+
+var terminalActivityIndicatorInterval = null;
+
+function setTerminalActivityIndicatorVisible(visible=true) {
+    if (visible) {
+        document.getElementById("terminalActivityIndicator").style.display = 'block';
+    } else {
+        document.getElementById("terminalActivityIndicator").style.display = 'none';
+    }
+}
+
+function toggleTerminalActivityIndicatorVisible() {
+    const hidden = document.getElementById("terminalActivityIndicator").style.display == 'none';
+    setTerminalActivityIndicatorVisible(hidden);
+}
+
+function disableTerminalActivityIndicator() {
+    setTerminalActivityIndicatorVisible(false);
+
+    if (terminalActivityIndicatorInterval) {
+        clearInterval(terminalActivityIndicatorInterval);
+        terminalActivityIndicatorInterval = null;
+    }
+}
+
+function enableTerminalActivityIndicator() {
+    if (!terminalActivityIndicatorInterval) {
+        terminalActivityIndicatorInterval = setInterval(toggleTerminalActivityIndicatorVisible, 750);
+    }
 }
 
 /* WASM event handlers */
 
 function onCurrentItemChanged() {
-    //console.log("current item changed");
+    console.log("new item mounted");
 }
 
 function onLintComponentIsReady() {
   setTimeout(function() {
-    clearConsole();
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
 }
 
 function recvMssg(text) {
     //console.log(`message received: ${text}`);
-    showConsole();
     writeConsole(text);
 }
 
@@ -159,7 +207,11 @@ function testAsyncGet() {
 
 async function init()
 {
-    hideConsole();
+    hideDevTools();
+    document.getElementById("devtoolsButton").onclick = toggleDevTools;
+    document.getElementById("clearConsoleButton").onclick = clearConsole;
+    disableTerminalActivityIndicator();
+
     SetDefaultDocument();
 
     if (!gUploadEnabled) 
@@ -200,11 +252,16 @@ async function init()
                 onLoaded: () => showUi(screen),
                 onExit: exitData =>
                 {
-                    status.innerHTML = 'Application exit';
-                    status.innerHTML +=
-                        exitData.code !== undefined ? ` with code ${exitData.code}` : '';
-                    status.innerHTML +=
-                        exitData.text !== undefined ? ` (${exitData.text})` : '';
+                    let message = "[error] Application exit"; 
+                    if (exitData.code !== undefined) {
+                        message += ` with code ${exitData.code}`;
+                    }
+                    if (exitData.text !== undefined) {
+                        message += ` (${exitData.text})`;
+                    }
+                    writeConsole(message);
+
+                    status.innerHTML = message;
                     showUi(spinner);
                 },
                 entryFunction: window.qmlfiddle_entry,
@@ -223,6 +280,9 @@ async function init()
             // enable qml linter, which will show the resulting QML item if compilation
             // succeeds (see onLintComponentIsReady()).
             CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
+
+            const dont_notify = true;
+            writeConsole("[info] QML engine is ready.", dont_notify);
         }
 
         GetSaveButton().onclick = SaveFiddle;

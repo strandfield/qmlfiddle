@@ -69,10 +69,9 @@ body {
   height: 100%;
   width: 100%;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #aaaaaa;
+  background-color: #222222;
+  color: white;
+  font-family: 'Lucida Console', Courier, monospace;
 }
 
 #code {
@@ -83,20 +82,64 @@ body {
 
 }
 
-#console {
-  padding: 1ex;
+#devtools-header {
+  height: 26px;
+  background-color: #f9f9fa;
+  display: flex;
+  border-bottom: 1px solid #e0e0e2;
+}
+
+#devtools-header-button {
+  height: 24px;
+  background-color: #f9f9fa;
+  border-top: 2px solid #f9f9fa;
+  padding: 0 1em;
+  font-size: 14px;
+  font-family: Arial;
+}
+
+#devtools-header-button:hover{
+  background-color: #ededf0;
+  border-top: 2px solid #bebec0;
+}
+
+#devtools-header-button[selected=true] {
+  border-top: 2px solid #0a84ff;
+}
+
+#devtools-console {
+  height: calc(100% - 26px);
+}
+
+#console-controls {
+  float: right;
+  margin-right: 2px;
+  margin-top: 2px;
+}
+
+#console-output {
   font-family: monospace !important;
+  font-size: 12px;
+  overflow-y: scroll;
+  max-height: calc(100% - 8px);
+}
+
+#console-output .log-entry {
+  padding: 0.2ex;
+  padding-left: 1em;
+  border-bottom: 1px solid #f3f3f5;
 }
 
 #qtspinner {
   margin: 0;
+  padding: 1em;
 }
 
 #hardcoded-fiddle {
   display: none;
 }
 
-.split {
+.splith {
     display: flex;
     flex-direction: row;
 }
@@ -112,8 +155,7 @@ body {
     cursor: col-resize;
 }
 .gutter.gutter-vertical {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-  cursor: row-resize;
+  cursor: ns-resize;
 }
 
 .cm-editor {
