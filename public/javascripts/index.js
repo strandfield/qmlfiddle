@@ -34,6 +34,7 @@ function showDevTools() {
     element.style.display = 'block';
 
     resizeWasmScreen();
+    disableTerminalActivityIndicator();
 }
 
 function hideDevTools() {
@@ -51,12 +52,20 @@ function hideDevTools() {
     resizeWasmScreen();
 }
 
-function writeConsole(text) {
+function devToolsVisible() {
+    return devtoolsSplit != null;
+}
+
+function writeConsole(text, ghost=false) {
     let out = document.getElementById("console-output");
     let entry = document.createElement("DIV");
     entry.classList.add("log-entry");
     entry.innerText = text;
     out.appendChild(entry);
+
+    if (!ghost && !devToolsVisible()) {
+        enableTerminalActivityIndicator();
+    }
 }
 
 function clearConsole() {
@@ -70,6 +79,36 @@ function toggleDevTools() {
         showDevTools();
     } else {
         hideDevTools();
+    }
+}
+
+var terminalActivityIndicatorInterval = null;
+
+function setTerminalActivityIndicatorVisible(visible=true) {
+    if (visible) {
+        document.getElementById("terminalActivityIndicator").style.display = 'block';
+    } else {
+        document.getElementById("terminalActivityIndicator").style.display = 'none';
+    }
+}
+
+function toggleTerminalActivityIndicatorVisible() {
+    const hidden = document.getElementById("terminalActivityIndicator").style.display == 'none';
+    setTerminalActivityIndicatorVisible(hidden);
+}
+
+function disableTerminalActivityIndicator() {
+    setTerminalActivityIndicatorVisible(false);
+
+    if (terminalActivityIndicatorInterval) {
+        clearInterval(terminalActivityIndicatorInterval);
+        terminalActivityIndicatorInterval = null;
+    }
+}
+
+function enableTerminalActivityIndicator() {
+    if (!terminalActivityIndicatorInterval) {
+        terminalActivityIndicatorInterval = setInterval(toggleTerminalActivityIndicatorVisible, 750);
     }
 }
 
@@ -87,7 +126,6 @@ function onLintComponentIsReady() {
 
 function recvMssg(text) {
     //console.log(`message received: ${text}`);
-    showDevTools();
     writeConsole(text);
 }
 
@@ -169,9 +207,10 @@ function testAsyncGet() {
 
 async function init()
 {
-    showDevTools();
+    hideDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
     document.getElementById("clearConsoleButton").onclick = clearConsole;
+    disableTerminalActivityIndicator();
 
     SetDefaultDocument();
 
@@ -242,7 +281,8 @@ async function init()
             // succeeds (see onLintComponentIsReady()).
             CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
 
-            writeConsole("[info] QML engine is ready.");
+            const dont_notify = true;
+            writeConsole("[info] QML engine is ready.", dont_notify);
         }
 
         GetSaveButton().onclick = SaveFiddle;
