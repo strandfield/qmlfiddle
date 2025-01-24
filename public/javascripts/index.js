@@ -15,23 +15,23 @@ window.Split(['#code', '#screen'], {
     onDrag: onDragCallback
 });
 
-var consoleSplit = null;
+var devtoolsSplit = null;
 
 function showDevTools() {
-    if (consoleSplit) {
+    if (devtoolsSplit) {
         return;
     }
 
-    let element = document.getElementById("devtools");
-    element.style.display = 'block';
-
-    consoleSplit = window.Split(['#maincontent', '#devtools'], {
+    devtoolsSplit = window.Split(['#maincontent', '#devtools'], {
         onDrag: onDragCallback,
         direction: 'vertical',
         sizes: [75, 25],
         gutterSize: 4,
         cursor: "ns-resize"
     });
+
+    let element = document.getElementById("devtools");
+    element.style.display = 'block';
 
     resizeWasmScreen();
 }
@@ -40,9 +40,9 @@ function hideDevTools() {
     let element = document.getElementById("devtools");
     element.style.display = 'none';
 
-    if (consoleSplit) {
-        consoleSplit.destroy();
-        consoleSplit = null;
+    if (devtoolsSplit) {
+        devtoolsSplit.destroy();
+        devtoolsSplit = null;
     }
 
     element = document.getElementById("maincontent");
@@ -213,7 +213,7 @@ async function init()
                 onLoaded: () => showUi(screen),
                 onExit: exitData =>
                 {
-                    let message = "Application exit"; 
+                    let message = "[error] Application exit"; 
                     if (exitData.code !== undefined) {
                         message += ` with code ${exitData.code}`;
                     }
@@ -242,7 +242,7 @@ async function init()
             // succeeds (see onLintComponentIsReady()).
             CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
 
-            writeConsole("QML engine is ready.");
+            writeConsole("[info] QML engine is ready.");
         }
 
         GetSaveButton().onclick = SaveFiddle;
