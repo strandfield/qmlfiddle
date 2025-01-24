@@ -107,6 +107,10 @@ body {
   border-top: 2px solid #0a84ff;
 }
 
+#devtools-console {
+  height: calc(100% - 26px);
+}
+
 #console-controls {
   float: right;
   margin-right: 2px;
@@ -116,6 +120,8 @@ body {
 #console-output {
   font-family: monospace !important;
   font-size: 12px;
+  overflow-y: scroll;
+  max-height: calc(100% - 8px);
 }
 
 #console-output .log-entry {
