@@ -11,7 +11,7 @@ function onDragCallback() {
     resizeWasmScreen();
 }
 
-window.Split(['#code', '#output'], {
+window.Split(['#code', '#screen'], {
     onDrag: onDragCallback
 });
 
@@ -25,10 +25,12 @@ function showConsole() {
     let element = document.getElementById("console");
     element.style.display = 'block';
 
-    consoleSplit = window.Split(['#screen', '#console'], {
+    consoleSplit = window.Split(['#maincontent', '#console'], {
         onDrag: onDragCallback,
         direction: 'vertical',
         sizes: [75, 25],
+        gutterSize: 4,
+        cursor: "ns-resize"
     });
 
     resizeWasmScreen();
@@ -38,16 +40,15 @@ function hideConsole() {
     let element = document.getElementById("console");
     element.style.display = 'none';
 
-    element = document.getElementById("screen");
-    element.style.height = '100%';
-    resizeWasmScreen();
-
-    if (!consoleSplit) {
-        return;
+    if (consoleSplit) {
+        consoleSplit.destroy();
+        consoleSplit = null;
     }
 
-    consoleSplit.destroy();
-    consoleSplit = null;
+    element = document.getElementById("maincontent");
+    element.style.height = '100%';
+
+    resizeWasmScreen();
 }
 
 function writeConsole(text) {
@@ -60,6 +61,15 @@ function writeConsole(text) {
 function clearConsole() {
     let out = document.getElementById("console");
     out.innerHTML = '';
+}
+
+function toggleDevTools() {
+    let element = document.getElementById("console");
+    if (element.style.display == 'none') {
+        showConsole();
+    } else {
+        hideConsole();
+    }
 }
 
 /* WASM event handlers */
@@ -158,7 +168,9 @@ function testAsyncGet() {
 
 async function init()
 {
-    showConsole();
+    hideConsole();
+    document.getElementById("devtoolsButton").onclick = toggleDevTools;
+
     SetDefaultDocument();
 
     if (!gUploadEnabled) 

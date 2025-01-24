@@ -24,10 +24,10 @@ html
             input(type="button", id="saveButton",value="Save")
           li
             input(type="button", id="forkButton", value="Fork")
-      main(id="content", class="split")
-        div(id="code")
-          pre(id="hardcoded-fiddle")= defaultDocument.content
-        div(id="output")
+      main(id="content")
+        div(id="maincontent", class="splith")
+          div(id="code")
+            pre(id="hardcoded-fiddle")= defaultDocument.content
           div(id="screen")
             div(id="screen-overlay")
               figure(style="overflow:visible;", id="qtspinner")
@@ -36,12 +36,15 @@ html
                   strong Qt for WebAssembly: qmlfiddle
                   div(id="qtstatus")
                   noscript JavaScript is disabled. Please enable JavaScript to use this application.
-          div(id="console")
+        div(id="console")
       footer(id="footer") 
         ul(class="hmenu", style="margin-left: 1em;")
           li
             a(href="/documentation.html", title="Documentation") Documentation
         ul(class="hmenu", style="margin-left: auto; margin-right: 1em;")
+          li
+            a(id="devtoolsButton", href="#", title="Show/Hide DevTools")
+              img(width="16", src="/images/terminal.svg")
           li
             a(href="/privacy.html", title="Privacy policy")
               img(width="16", src="/images/biscuit.svg")
