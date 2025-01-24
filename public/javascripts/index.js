@@ -112,6 +112,18 @@ function enableTerminalActivityIndicator() {
     }
 }
 
+var autoRunActivated = true;
+
+function setAutorunActivated(active = true) {
+    document.getElementById("runButton").innerText = active ? "Auto Run" : "Run";
+    autoRunActivated = active;
+}
+
+function compileAndRun() {
+    const src = gCodeEditor.state.doc.toString();
+    qtInstance.qmlfiddle_CompileAndRun(src);
+}
+
 /* WASM event handlers */
 
 function onCurrentItemChanged() {
@@ -119,6 +131,10 @@ function onCurrentItemChanged() {
 }
 
 function onLintComponentIsReady() {
+    if (!autoRunActivated) {
+        return;
+    }
+
   setTimeout(function() {
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
@@ -209,6 +225,16 @@ async function init()
 {
     hideDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
+    document.getElementById("clearConsoleButton").onclick = clearConsole;
+    document.getElementById("runButton").onclick = compileAndRun;
+    document.getElementById("activateAutorunLink").onclick = (event) => {
+        event.preventDefault();
+        setAutorunActivated(true);
+    };
+    document.getElementById("deactivateAutorunLink").onclick = (event) => {
+        event.preventDefault();
+        setAutorunActivated(false);
+    };
     document.getElementById("clearConsoleButton").onclick = clearConsole;
     disableTerminalActivityIndicator();
 

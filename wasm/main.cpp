@@ -39,7 +39,15 @@ EMSCRIPTEN_KEEPALIVE void use_last_lint_as_source()
   {
     c->useLastLintAsSource();
   }
+}
 
+EMSCRIPTEN_KEEPALIVE void compile_and_run(const std::string &text)
+{
+  auto* c = Controller::instance();
+  if (c)
+  {
+    c->compileAndRun(QByteArray::fromStdString(text));
+  }
 }
 
 EMSCRIPTEN_KEEPALIVE void set_message_handler(const emscripten::val& handler)
@@ -93,6 +101,7 @@ EMSCRIPTEN_BINDINGS(my_module)
 {
   emscripten::function("qmlfiddle_lintSource", &lint_source);
   emscripten::function("qmlfiddle_UseLastLintAsSource", &use_last_lint_as_source);
+  emscripten::function("qmlfiddle_CompileAndRun", &compile_and_run);
   emscripten::function("qmlfiddle_setMessageHandler", &set_message_handler);
   emscripten::function("qmlfiddle_onCurrentItemChanged", &set_current_item_changed_handler);
   emscripten::function("qmlfiddle_onLintReady", &set_lint_ready_handler);

@@ -21,6 +21,15 @@ html
           img(src="/favicon.ico", class="d-block") 
         div(class="flex-grow-1")
           input(type="text", id="titleInput", name="title", placeholder="Untitled fiddle", value=defaultDocument.title)
+        div(id="runButtonGroup" class="btn-group")
+          button(type="button", id="runButton" class="btn btn-success btn-sm") Auto Run
+          button(type="button", class="btn btn-success dropdown-toggle dropdown-toggle-split btn-sm", data-bs-toggle="dropdown", aria-expanded="false")
+            span(class="visually-hidden") Toggle Dropdown
+          ul(class="dropdown-menu")
+            li
+              a(id="deactivateAutorunLink", class="dropdown-item", href="#") Run
+            li
+              a(id="activateAutorunLink", class="dropdown-item", href="#") Auto Run
         ul(id="actions")
           li 
             input(type="button", id="saveButton", class="btn btn-light btn-sm action-btn", value="Save")

@@ -34,6 +34,7 @@ public:
   QQmlComponent* currentComponent() const;
   void setCurrentComponent(QQmlComponent* component);
 
+  void compileAndRun(const QByteArray& data);
   void useLastLintAsSource();
 
   void sendMessage(const std::string& str);
@@ -49,6 +50,7 @@ public:
 
 protected Q_SLOTS:
   void onLintCompleted();
+  void onCompileCompleted();
 
 protected:
   void setLastLintComponent(QQmlComponent* component);
