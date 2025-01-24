@@ -65,12 +65,11 @@ function clearConsole() {
 /* WASM event handlers */
 
 function onCurrentItemChanged() {
-    //console.log("current item changed");
+    writeConsole("New item mounted");
 }
 
 function onLintComponentIsReady() {
   setTimeout(function() {
-    clearConsole();
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
 }
@@ -159,7 +158,7 @@ function testAsyncGet() {
 
 async function init()
 {
-    hideConsole();
+    showConsole();
     SetDefaultDocument();
 
     if (!gUploadEnabled) 
@@ -200,11 +199,16 @@ async function init()
                 onLoaded: () => showUi(screen),
                 onExit: exitData =>
                 {
-                    status.innerHTML = 'Application exit';
-                    status.innerHTML +=
-                        exitData.code !== undefined ? ` with code ${exitData.code}` : '';
-                    status.innerHTML +=
-                        exitData.text !== undefined ? ` (${exitData.text})` : '';
+                    let message = "Application exit"; 
+                    if (exitData.code !== undefined) {
+                        message += ` with code ${exitData.code}`;
+                    }
+                    if (exitData.text !== undefined) {
+                        message += ` (${exitData.text})`;
+                    }
+                    writeConsole(message);
+
+                    status.innerHTML = message;
                     showUi(spinner);
                 },
                 entryFunction: window.qmlfiddle_entry,
@@ -223,6 +227,8 @@ async function init()
             // enable qml linter, which will show the resulting QML item if compilation
             // succeeds (see onLintComponentIsReady()).
             CodeEditor.enableQmlLinter(gCodeEditor, qtInstance);
+
+            writeConsole("QML engine is ready.");
         }
 
         GetSaveButton().onclick = SaveFiddle;
