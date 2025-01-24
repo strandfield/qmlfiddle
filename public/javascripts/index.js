@@ -157,6 +157,10 @@ function SetDefaultDocument() {
     }
 }
 
+function SetActionButtonVisible(btn, visible = true) {
+    btn.parentElement.style.display = visible ? 'inline' : 'none';
+}
+
 function GetSaveButton() {
     return document.getElementById("saveButton");
 }
@@ -197,8 +201,8 @@ function ForkFiddle() {
     gFiddleId = "";
     gFiddleEditKey = "";
     window.history.pushState({}, "", "/");
-    GetForkButton().style.display = 'none';
-    GetSaveButton().style.display = 'inline';
+    SetActionButtonVisible(GetForkButton(), false);
+    SetActionButtonVisible(GetSaveButton(), true);
 }
 
 function testAsyncGet() {
@@ -217,16 +221,16 @@ async function init()
     if (!gUploadEnabled) 
     {
         document.getElementById("titleInput").style.display = 'none';
-        GetSaveButton().style.display = 'none';
-        GetForkButton().style.display = 'none';
+        SetActionButtonVisible(GetSaveButton(), false);
+        SetActionButtonVisible(GetForkButton(), false);
     }
     else
     {
         if (gFiddleId != "" && gFiddleEditKey == "") {
-            GetSaveButton().style.display = 'none';
-            GetForkButton().style.display = 'inline';
+            SetActionButtonVisible(GetSaveButton(), false);
+            SetActionButtonVisible(GetForkButton(), true);
         } else {
-            GetForkButton().style.display = 'none';
+            SetActionButtonVisible(GetForkButton(), false);
         }
     }
 
