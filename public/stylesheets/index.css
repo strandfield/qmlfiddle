@@ -83,7 +83,32 @@ body {
 
 }
 
-#console {
+#devtools-header {
+  height: 26px;
+  background-color: #f9f9fa;
+  display: flex;
+  border-bottom: 1px solid #e0e0e2;
+}
+
+#devtools-header-button {
+  height: 24px;
+  background-color: #f9f9fa;
+  border-top: 2px solid #f9f9fa;
+  padding: 0 1em;
+  font-size: 14px;
+  font-family: Arial;
+}
+
+#devtools-header-button:hover{
+  background-color: #ededf0;
+  border-top: 2px solid #bebec0;
+}
+
+#devtools-header-button[selected=true] {
+  border-top: 2px solid #0a84ff;
+}
+
+#console-output {
   padding: 1ex;
   font-family: monospace !important;
 }

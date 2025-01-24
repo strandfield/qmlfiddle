@@ -17,15 +17,15 @@ window.Split(['#code', '#screen'], {
 
 var consoleSplit = null;
 
-function showConsole() {
+function showDevTools() {
     if (consoleSplit) {
         return;
     }
 
-    let element = document.getElementById("console");
+    let element = document.getElementById("devtools");
     element.style.display = 'block';
 
-    consoleSplit = window.Split(['#maincontent', '#console'], {
+    consoleSplit = window.Split(['#maincontent', '#devtools'], {
         onDrag: onDragCallback,
         direction: 'vertical',
         sizes: [75, 25],
@@ -36,8 +36,8 @@ function showConsole() {
     resizeWasmScreen();
 }
 
-function hideConsole() {
-    let element = document.getElementById("console");
+function hideDevTools() {
+    let element = document.getElementById("devtools");
     element.style.display = 'none';
 
     if (consoleSplit) {
@@ -52,23 +52,23 @@ function hideConsole() {
 }
 
 function writeConsole(text) {
-    let out = document.getElementById("console");
+    let out = document.getElementById("console-output");
     let entry = document.createElement("DIV");
     entry.innerText = text;
     out.appendChild(entry);
 }
 
 function clearConsole() {
-    let out = document.getElementById("console");
+    let out = document.getElementById("console-output");
     out.innerHTML = '';
 }
 
 function toggleDevTools() {
-    let element = document.getElementById("console");
+    let element = document.getElementById("devtools");
     if (element.style.display == 'none') {
-        showConsole();
+        showDevTools();
     } else {
-        hideConsole();
+        hideDevTools();
     }
 }
 
@@ -86,7 +86,7 @@ function onLintComponentIsReady() {
 
 function recvMssg(text) {
     //console.log(`message received: ${text}`);
-    showConsole();
+    showDevTools();
     writeConsole(text);
 }
 
@@ -168,7 +168,7 @@ function testAsyncGet() {
 
 async function init()
 {
-    hideConsole();
+    showDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
 
     SetDefaultDocument();
