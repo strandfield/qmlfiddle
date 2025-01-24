@@ -54,6 +54,7 @@ function hideDevTools() {
 function writeConsole(text) {
     let out = document.getElementById("console-output");
     let entry = document.createElement("DIV");
+    entry.classList.add("log-entry");
     entry.innerText = text;
     out.appendChild(entry);
 }
@@ -170,6 +171,7 @@ async function init()
 {
     showDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
+    document.getElementById("clearConsoleButton").onclick = clearConsole;
 
     SetDefaultDocument();
 

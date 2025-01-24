@@ -38,7 +38,11 @@ html
           div(id="devtools-header")
             div(id="devtools-header-button", selected="true") 
               div(style="margin-top: 0.4ex;") Output
-          div(id="console-output")
+          div(id="devtools-console")
+            div(id="console-controls")
+              a(id="clearConsoleButton", href="#", title="Clear")
+                img(width="16", src="/images/trash.svg")
+            div(id="console-output")
       footer(id="footer") 
         ul(class="hmenu", style="margin-left: 1em;")
           li
