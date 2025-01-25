@@ -26,6 +26,7 @@ function GetFiddle(req, res, next) {
 
   res.render('index', { 
     title: 'QML Fiddle',
+    user: req.user,
     defaultDocument: fiddle 
   });
 }
@@ -36,6 +37,7 @@ function GetAllFiddles(req, res, next) {
 
   res.render('list', { 
     title: 'QML Fiddle',
+    user: req.user,
     fiddles: fiddles
   });
 }
@@ -71,6 +73,7 @@ router.get('/', function(req, res, next) {
 
   res.render('index', { 
     title: 'QML Fiddle',
+    user: req.user,
     defaultDocument: {
       id: "",
       title: "",

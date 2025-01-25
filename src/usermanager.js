@@ -22,6 +22,11 @@ class UserManager
         const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
         let stmt = this.database.prepare(`INSERT INTO user(email, hashedPassword, salt) VALUES(?,?,?)`);
         const info = stmt.run(email, hashed_password, salt);
+        if (!info.lastInsertRowid) {
+            return undefined;
+        } else {
+            return this.getUser(email);
+        }
     }
 
     createSuperUser(email, password) {

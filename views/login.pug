@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    section(class="prompt")
+        h1 Sign in
+            form(action="/login/password", method="post")
+                section 
+                    label(for="email") email 
+                    input(id="email", name="email", type="text", autocomplete="email", required)
+                section 
+                    label(for="current-password") password 
+                    input(id="current-password", name="password", type="password", autocomplete="current-password", required)
+                button(type="submit") Sign in
+            hr
+            p(class="help").
+                Don't have an account? #[a(href="/signup") Sign up]

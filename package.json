@@ -7,13 +7,17 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
+    "better-sqlite3-session-store": "^0.1.0",
     "codemirror": "^6.0.1",
     "codemirror-lang-qml": "file:codemirror-lang-qml",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "^4.18.2",
+    "express-session": "^1.18.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "pug": "^3.0.3",
     "webpack": "^5.90.3"
   },

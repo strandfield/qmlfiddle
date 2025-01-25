@@ -1,5 +1,9 @@
 var createError = require('http-errors');
 var express = require('express');
+var passport = require('passport');
+var session = require('express-session');
+const sqlite3 = require('better-sqlite3')
+var SQLiteStore = require('better-sqlite3-session-store')(session);
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -176,8 +180,29 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
+let sessionDb = new sqlite3(path.join(DataDir, 'sessions.db'));
+let sessionStore =  new SQLiteStore({
+  client: sessionDb, 
+  expired: {
+    clear: true,
+    intervalMs: 900000 //ms = 15min
+  }
+});
+
+app.set('trust proxy', 1) // trust first proxy
+app.use(session({
+  secret: 'keyboard cat', // TODO: use custom secret
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore
+}));
+app.use(passport.authenticate('session'));
+var { router, setupPassport } = require('./routes/auth');
+setupPassport(users);
+
 var apiRouter = require('./routes/api');
 app.use('/api', apiRouter);
+app.use('/', router);
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
