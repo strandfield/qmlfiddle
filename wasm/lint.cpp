@@ -40,6 +40,10 @@ struct Diagnostic
 
 void sendErrors(const std::vector<Diagnostic>& diagnostics, const QByteArray& data, const emscripten::val& resolve)
 {
+  if(resolve.isUndefined()) {
+    return;
+  }
+
   const QString source_code = QString::fromUtf8(data);
 
   QJsonArray errlist;
@@ -64,6 +68,10 @@ void sendErrors(const std::vector<Diagnostic>& diagnostics, const QByteArray& da
 
 void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const emscripten::val& resolve)
 {
+  if(resolve.isUndefined()) {
+    return;
+  }
+
   std::vector<Diagnostic> diagnostics;
   diagnostics.reserve(errors.size());
 
@@ -81,6 +89,10 @@ void sendErrors(const QList<QQmlError>& errors, const QByteArray& data, const em
 
 void sendErrors(const std::vector<SourcePreprocessor::Error>& errors, const QByteArray& data, const emscripten::val& resolve)
 {
+  if(resolve.isUndefined()) {
+    return;
+  }
+
   std::vector<Diagnostic> diagnostics;
   diagnostics.reserve(errors.size());
 
@@ -285,8 +297,10 @@ void QmlSourceLint::onComponentStatusChanged()
     m_component->deleteLater();
     m_component = nullptr;
   } else if (m_component->status() == QQmlComponent::Ready) {
-    std::string result = "[]";
-    m_promiseResolve(result);
+    if (!m_promiseResolve.isUndefined()) {
+      std::string result = "[]";
+      m_promiseResolve(result);
+    }
     Q_EMIT lintCompleted();
   }
 }

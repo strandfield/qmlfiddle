@@ -109,8 +109,22 @@ void Controller::setCurrentComponent(QQmlComponent* component)
   m_component = component;
 
   if (m_component) {
+    m_component->setParent(this);
     createItem(*m_component);
+  } else {
+    if (m_item) {
+      m_item->setVisible(false);
+      m_item->deleteLater();
+      m_item = nullptr;
+    }
   }
+}
+
+void Controller::compileAndRun(const QByteArray& data)
+{
+  auto* lint = new QmlSourceLint(*engine(), resourceManager(), emscripten::val::undefined(), data, this);
+  connect(lint, &QmlSourceLint::lintCompleted, this, &Controller::onCompileCompleted);
+  lint->start();
 }
 
 void Controller::useLastLintAsSource()
@@ -155,12 +169,29 @@ void Controller::onLintCompleted()
     return;
   }
 
-  if (lint->component()->status() == QQmlComponent::Ready) {
+  if (lint->component() && lint->component()->status() == QQmlComponent::Ready)
+  {
     setLastLintComponent(lint->component());
-    if (!onLintComponentReady.isUndefined())
-    {
+    if (!onLintComponentReady.isUndefined()){
       onLintComponentReady();
     }
+  }
+
+  lint->deleteLater();
+}
+
+void Controller::onCompileCompleted()
+{
+  auto* lint = qobject_cast<QmlSourceLint*>(sender());
+
+  if(!lint) {
+    return;
+  }
+
+  if (lint->component() && lint->component()->status() == QQmlComponent::Ready) {
+    setCurrentComponent(lint->component());
+  } else {
+    setCurrentComponent(nullptr);
   }
 
   lint->deleteLater();

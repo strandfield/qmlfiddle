@@ -112,6 +112,18 @@ function enableTerminalActivityIndicator() {
     }
 }
 
+var autoRunActivated = true;
+
+function setAutorunActivated(active = true) {
+    document.getElementById("runButton").innerText = active ? "Auto Run" : "Run";
+    autoRunActivated = active;
+}
+
+function compileAndRun() {
+    const src = gCodeEditor.state.doc.toString();
+    qtInstance.qmlfiddle_CompileAndRun(src);
+}
+
 /* WASM event handlers */
 
 function onCurrentItemChanged() {
@@ -119,6 +131,10 @@ function onCurrentItemChanged() {
 }
 
 function onLintComponentIsReady() {
+    if (!autoRunActivated) {
+        return;
+    }
+
   setTimeout(function() {
     qtInstance.qmlfiddle_UseLastLintAsSource();
   }, 16);
@@ -155,6 +171,10 @@ function SetDefaultDocument() {
 
         code.firstElementChild.remove();
     }
+}
+
+function SetActionButtonVisible(btn, visible = true) {
+    btn.parentElement.style.display = visible ? 'inline' : 'none';
 }
 
 function GetSaveButton() {
@@ -197,18 +217,24 @@ function ForkFiddle() {
     gFiddleId = "";
     gFiddleEditKey = "";
     window.history.pushState({}, "", "/");
-    GetForkButton().style.display = 'none';
-    GetSaveButton().style.display = 'inline';
-}
-
-function testAsyncGet() {
-    qtInstance.qmlfiddle_asyncGet();
+    SetActionButtonVisible(GetForkButton(), false);
+    SetActionButtonVisible(GetSaveButton(), true);
 }
 
 async function init()
 {
     hideDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
+    document.getElementById("clearConsoleButton").onclick = clearConsole;
+    document.getElementById("runButton").onclick = compileAndRun;
+    document.getElementById("activateAutorunLink").onclick = (event) => {
+        event.preventDefault();
+        setAutorunActivated(true);
+    };
+    document.getElementById("deactivateAutorunLink").onclick = (event) => {
+        event.preventDefault();
+        setAutorunActivated(false);
+    };
     document.getElementById("clearConsoleButton").onclick = clearConsole;
     disableTerminalActivityIndicator();
 
@@ -217,16 +243,16 @@ async function init()
     if (!gUploadEnabled) 
     {
         document.getElementById("titleInput").style.display = 'none';
-        GetSaveButton().style.display = 'none';
-        GetForkButton().style.display = 'none';
+        SetActionButtonVisible(GetSaveButton(), false);
+        SetActionButtonVisible(GetForkButton(), false);
     }
     else
     {
         if (gFiddleId != "" && gFiddleEditKey == "") {
-            GetSaveButton().style.display = 'none';
-            GetForkButton().style.display = 'inline';
+            SetActionButtonVisible(GetSaveButton(), false);
+            SetActionButtonVisible(GetForkButton(), true);
         } else {
-            GetForkButton().style.display = 'none';
+            SetActionButtonVisible(GetForkButton(), false);
         }
     }
 
