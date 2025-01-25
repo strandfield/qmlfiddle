@@ -152,7 +152,10 @@ app.locals.fiddleManager = new FiddleManager(db);
 app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"));
 
 const UserManager = require("./src/usermanager");
-const users = new UserManager(db);
+let users = new UserManager(db);
+if (conf?.crypto?.pbkdf2Iterations) {
+  users.pbkdf2Iterations = parseInt(conf.crypto.pbkdf2Iterations);
+}
 app.locals.userManager = users;
 // create admin user if it does not exist
 if (conf.admin && conf.admin.email && conf.admin.password) {
