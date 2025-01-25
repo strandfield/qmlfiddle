@@ -151,6 +151,16 @@ const FiddleManager = require("./src/fiddlemanager");
 app.locals.fiddleManager = new FiddleManager(db);
 app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"));
 
+const UserManager = require("./src/usermanager");
+const users = new UserManager(db);
+app.locals.userManager = users;
+// create admin user if it does not exist
+if (conf.admin && conf.admin.email && conf.admin.password) {
+  if (!users.hasUser(conf.admin.email)) {
+    users.createUser(conf.admin.email, conf.admin.password);
+  }
+}
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
