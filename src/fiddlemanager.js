@@ -6,6 +6,8 @@ class FiddleManager
         this.database = db;
 
         this.projects = {};
+
+        this.editKeySalt = Math.random().toString();
     }
 
     getDatabase() {
@@ -43,9 +45,8 @@ class FiddleManager
         return 1 + Math.trunc(Math.random() * maxid);
     }
 
-    #generatePepper() {
-        const maxvalue = 2000000000;
-        return 1 + Math.trunc(Math.random() * maxvalue);
+    getCurrentTimestamp() {
+        return Math.floor(Date.now() / 1000);
     }
 
     createFiddle(title, content) {
@@ -54,14 +55,14 @@ class FiddleManager
             id = this.#generateFiddleId();
         }
 
-        const pepper = this.#generatePepper();
-        let stmt = this.database.prepare(`INSERT INTO fiddle(id, title, content, pepper) VALUES(?,?,?,?)`);
-        const info = stmt.run(id, title, content, pepper);
+        const ts = this.getCurrentTimestamp();
+        let stmt = this.database.prepare(`INSERT INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
+        const info = stmt.run(id, title, content, ts);
         return {
             id: info.lastInsertRowid,
-            pepper: pepper,
             title: title,
-            content: content
+            content: content,
+            dateCreated: ts
         };
     }
 
@@ -69,36 +70,36 @@ class FiddleManager
         console.assert(typeof fiddleObject == 'object' && fiddleObject != null);
         const crypto = require('crypto')
         let shasum = crypto.createHash('sha1');
+        shasum.update(fiddleObject.id.toString());
         shasum.update(fiddleObject.title);
-        shasum.update(fiddleObject.content);
-        // TODO: add salt? (note: does not need to be shared with wasm)
-        shasum.update(fiddleObject.pepper.toString());
+        if (fiddleObject.dateModified) {
+            shasum.update(fiddleObject.dateModified.toString());
+        } else {
+            shasum.update(fiddleObject.dateCreated.toString());
+        }
+        shasum.update(fiddleObject.title);
+        shasum.update(this.editKeySalt);
         const sha1 = shasum.digest('hex');
         return sha1;
     }
 
     getFiddleEditKey(fiddleIdOrObject) {
         if (typeof fiddleIdOrObject == 'object') {
-            let fiddle = fiddleIdOrObject;
-            if (fiddle.pepper == undefined) {
-                fiddle = this.getFiddleByIdEx(fiddle.id, ["title", "content", "pepper"]);
-                console.assert(fiddle != undefined);
-            }
-            return this.#computeEditKey(fiddle);
+            return this.#computeEditKey(fiddleIdOrObject);
         } else {
-            const fiddle = this.getFiddleByIdEx(fiddleIdOrObject, ["title", "content", "pepper"]);
+            const fiddle = this.getFiddleByIdEx(fiddleIdOrObject, ["id", "title", "dateCreated", "dateModified"]);
             if (fiddle == undefined) {
                 return undefined;
             }
             return this.getFiddleEditKey(fiddle);
         }
     }
-
+    
     updateFiddle(id, title, content) {
         id = this.#unwrap(id);
-        const pepper = this.#generatePepper();
-        let stmt = this.database.prepare(`UPDATE fiddle SET title = ?, content = ?, pepper = ? WHERE id = ?`);
-        const info = stmt.run(title, content, pepper, id);
+        const timestamp = this.getCurrentTimestamp();
+        let stmt = this.database.prepare(`UPDATE fiddle SET title = ?, content = ?, dateModified = ? WHERE id = ?`);
+        const info = stmt.run(title, content, timestamp, id);
 
         if (info.changes != 1) {
             return null;
@@ -108,15 +109,14 @@ class FiddleManager
             id: id,
             title: title,
             content: content,
-            pepper: pepper
+            dateModified: timestamp
         };
     }
 
     insertOrUpdateFiddle(id, title, content) {
         id = this.#unwrap(id);
-        const pepper = this.#generatePepper();
-        let stmt = this.database.prepare(`INSERT OR REPLACE INTO fiddle(id, title, content, pepper) VALUES(?,?,?,?)`);
-        stmt.run(id, title, content, pepper);
+        let stmt = this.database.prepare(`INSERT OR REPLACE INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
+        stmt.run(id, title, content, this.getCurrentTimestamp());
     }
 
     loadFiddlesFromDirectory(dirPath) {
