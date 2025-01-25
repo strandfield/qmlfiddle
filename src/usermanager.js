@@ -32,7 +32,7 @@ class UserManager
     }
 
     getUser(email) {
-        let stmt = this.database.prepare(`SELECT email, superUser FROM user WHERE email = ?`);
+        let stmt = this.database.prepare(`SELECT id, email, superUser, maxFiddleSize, maxFiddles FROM user WHERE email = ?`);
         return stmt.get(email);
     }
 
@@ -62,6 +62,20 @@ class UserManager
         let stmt = this.database.prepare(`UPDATE user SET hashedPassword = ?, salt = ? WHERE email = ?`);
         const info = stmt.run(hashed_password, salt, email);
         return info.changes == 1;
+    }
+
+    updateUserRights(userId, name, value) {
+        let stmt = this.database.prepare(`UPDATE user SET ${name} = ? WHERE id = ?`);
+        const info = stmt.run(value, userId);
+        return info.changes == 1;
+    }
+
+    updateUserMaxFiddleSize(userId, value) {
+        return this.updateUserRights(userId, "maxFiddleSize", value);
+    }
+
+    updateUserMaxFiddles(userId, value) {
+        return this.updateUserRights(userId, "maxFiddles", value);
     }
 };
 

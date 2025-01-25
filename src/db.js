@@ -12,7 +12,9 @@ function createUserTable(db) {
     	"email"           TEXT UNIQUE, 
     	"hashedPassword"  BLOB, 
     	"salt"            BLOB,
-		"superUser"       INTEGER NOT NULL DEFAULT 0
+		"superUser"       INTEGER NOT NULL DEFAULT 0,
+		"maxFiddleSize"   INTEGER NOT NULL DEFAULT 0,
+		"maxFiddles"      INTEGER NOT NULL DEFAULT 0
     )`);
 }
 
