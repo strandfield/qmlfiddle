@@ -10,6 +10,8 @@ var indexRouter = require('./routes/index');
 
 var app = express();
 
+app.disable('x-powered-by');
+
 {
   const pjson = require('./package.json');
   console.log(`this is ${pjson.name} version ${pjson.version}`);
