@@ -157,7 +157,7 @@ app.locals.userManager = users;
 // create admin user if it does not exist
 if (conf.admin && conf.admin.email && conf.admin.password) {
   if (!users.hasUser(conf.admin.email)) {
-    users.createUser(conf.admin.email, conf.admin.password);
+    users.createSuperUser(conf.admin.email, conf.admin.password);
   }
 }
 

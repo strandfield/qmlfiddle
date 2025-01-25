@@ -24,10 +24,20 @@ class UserManager
         const info = stmt.run(email, hashed_password, salt);
     }
 
+    createSuperUser(email, password) {
+        const salt = crypto.randomBytes(saltLength);
+        const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
+        let stmt = this.database.prepare(`INSERT INTO user(email, hashedPassword, salt, superUser) VALUES(?,?,?,1)`);
+        const info = stmt.run(email, hashed_password, salt);
+    }
+
+    getUser(email) {
+        let stmt = this.database.prepare(`SELECT email, superUser FROM user WHERE email = ?`);
+        return stmt.get(email);
+    }
+
     hasUser(email) {
-        let stmt = this.database.prepare(`SELECT * FROM user WHERE email = ?`);
-        const row = stmt.get(email);
-        return row != undefined;
+        return this.getUser(email) != undefined;
     }
 
     authenticate(email, password) {

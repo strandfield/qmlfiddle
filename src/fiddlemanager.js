@@ -1,5 +1,4 @@
 
-
 class FiddleManager
 {
     constructor(db) {

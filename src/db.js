@@ -8,10 +8,11 @@ function checkTableExists(db, tableName) {
 
 function createUserTable(db) {
 	db.exec(`CREATE TABLE IF NOT EXISTS "user" ( 
-    	"id" INTEGER NOT NULL PRIMARY KEY UNIQUE, 
-    	"email" TEXT UNIQUE, 
-    	"hashedPassword" BLOB, 
-    	"salt" BLOB
+    	"id"              INTEGER NOT NULL PRIMARY KEY UNIQUE, 
+    	"email"           TEXT UNIQUE, 
+    	"hashedPassword"  BLOB, 
+    	"salt"            BLOB,
+		"superUser"       INTEGER NOT NULL DEFAULT 0
     )`);
 }
 
