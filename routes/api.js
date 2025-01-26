@@ -1,18 +1,12 @@
 
-const Database = require('better-sqlite3');
-
 var express = require('express');
-
-var fs = require('fs');
 
 function GetSiteInfo(req, res, next) {
   res.json({
     features: {
       upload: req.app.locals.conf.features.uploadEnabled
     },
-    limits: {
-      maxFiddleSize: req.app.locals.conf.limits.maxFiddleSize
-    }
+    fiddles: req.app.locals.conf.fiddles
   });
 }
 
@@ -60,7 +54,14 @@ function PostFiddle(req, res, next) {
     });
   }
 
-  const max_length = req.app.locals.conf.limits.maxFiddleSize;
+  let max_length = req.app.locals.conf.fiddles.maxFiddleSizeUnregistered;
+  if (req.user) {
+    if (req.user.emailVerified) {
+      max_length = req.app.locals.conf.fiddles.maxFiddleSizeVerified;
+    } else {
+      max_length = req.app.locals.conf.fiddles.maxFiddleSizeUnverified;
+    }
+  }
   if (max_length > 0 && content.length > max_length) {
     return res.json({
       accepted: false,
@@ -102,6 +103,9 @@ function PostFiddle(req, res, next) {
     }
 
     let fiddle = manager.createFiddle(title, content);
+    if (fiddle && req.user) {
+      manager.setFiddleAuthorId(fiddle.id, req.user.id);
+    }
     id = fiddle.id.toString(16);
     result.editKey = manager.getFiddleEditKey(fiddle);
   }

@@ -94,8 +94,10 @@ const defaultConf = {
   features: {
     uploadEnabled: true
   },
-  limits: {
-    maxFiddleSize: "32kb"
+  fiddles: {
+    maxFiddleSizeUnregistered: "4kb",
+    maxFiddleSizeUnverified: "16kb",
+    maxFiddleSizeVerified: "32kb"
   }
 };
 
@@ -126,7 +128,7 @@ function parseMaxFiddleSize(value)  {
     return parseInt(value.substring(0, value.length - 1));
   } else {
     const r = parseInt(value);
-    console.assert(r != NaN, "invalid value for conf field maxFiddleSize");
+    console.assert(r != NaN, "invalid value for conf 'fiddle size' field");
     return r;
   }
 }
@@ -135,17 +137,15 @@ app.locals.conf = {
   features: {
     uploadEnabled: uploadEnabled
   },
-  limits: {
-    maxFiddleSize: parseMaxFiddleSize(conf?.limits?.maxFiddleSize ?? defaultConf.limits.maxFiddleSize)
+  fiddles: {
+    maxFiddleSizeUnregistered: parseMaxFiddleSize(conf?.fiddles?.maxFiddleSizeUnregistered ?? defaultConf.fiddles.maxFiddleSizeUnregistered),
+    maxFiddleSizeUnverified: parseMaxFiddleSize(conf?.fiddles?.maxFiddleSizeUnverified ?? defaultConf.fiddles.maxFiddleSizeUnverified),
+    maxFiddleSizeVerified: parseMaxFiddleSize(conf?.fiddles?.maxFiddleSizeVerified ?? defaultConf.fiddles.maxFiddleSizeVerified)
   }
 };
 
 if (app.locals.conf.features.uploadEnabled) {
   console.log("fiddle upload is enabled");
-}
-
-if (app.locals.conf.limits.maxFiddleSize > 0) {
-  console.log(`maxFiddleSize = ${app.locals.conf.limits.maxFiddleSize}`);
 }
 
 const { getOrCreateFiddleDatabase } = require("./src/db");
