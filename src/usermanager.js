@@ -83,26 +83,21 @@ class UserManager
         return crypto.timingSafeEqual(row.hashedPassword, hashed_password);
     }
 
-    updateUserEmail(currentEmail, newEmail) {
-        let stmt = this.database.prepare(`UPDATE user SET email = ? WHERE email = ?`);
-        const info = stmt.run(newEmail, currentEmail);
-        return info.changes == 1;
-    }
-
-    updateUserPassword(email, newPassword) {
-        const salt = crypto.randomBytes(saltLength);
-        const hashed_password = crypto.pbkdf2Sync(newPassword, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
-        let stmt = this.database.prepare(`UPDATE user SET hashedPassword = ?, salt = ? WHERE email = ?`);
-        const info = stmt.run(hashed_password, salt, email);
-        return info.changes == 1;
-    }
-
     deleteUser(userId) {
         let stmt = this.database.prepare(`DELETE FROM fiddle WHERE authorId = ?`);
         stmt.run(userId);
         stmt = this.database.prepare(`DELETE FROM user WHERE id = ?`);
         stmt.run(userId);
     }
+
+    updateUser(userId, username, email, password) {
+        const salt = crypto.randomBytes(saltLength);
+        const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
+        let stmt = this.database.prepare(`UPDATE user SET username = ?, email = ?, hashedPassword = ?, salt = ? WHERE id = ?`);
+        const info = stmt.run(username, email, hashed_password, salt, userId);
+        return info.changes == 1;
+    }
+
 };
 
 module.exports = UserManager;
