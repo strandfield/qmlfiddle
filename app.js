@@ -151,8 +151,18 @@ if (app.locals.conf.limits.maxFiddleSize > 0) {
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);
 
+function setupFiddleManager(instance, conf) {
+  if (conf?.fiddles?.maxFiddleId) {
+    instance.maxFiddleId = parseInt(conf.fiddles.maxFiddleId);
+  }
+  if (conf?.fiddles?.firstUserFiddleId) {
+    instance.userMinFiddleId = parseInt(conf.fiddles.firstUserFiddleId);
+  }
+}
+
 const FiddleManager = require("./src/fiddlemanager");
 app.locals.fiddleManager = new FiddleManager(db);
+setupFiddleManager(app.locals.fiddleManager, conf);
 app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"));
 
 const UserManager = require("./src/usermanager");
@@ -189,9 +199,22 @@ let sessionStore =  new SQLiteStore({
   }
 });
 
+let sessionSecret = null;
+if (process.env.QMLFIDDLE_SESSION_SECRET) {
+  sessionSecret = process.env.QMLFIDDLE_SESSION_SECRET;
+}
+if(conf?.crypto?.sessionSecret) {
+  sessionSecret = conf.crypto.sessionSecret;
+}
+
+if (sessionSecret == null) {
+  throw "a session secret must be provided";
+}
+
 app.set('trust proxy', 1) // trust first proxy
 app.use(session({
-  secret: 'keyboard cat', // TODO: use custom secret
+  name: 'sessionId',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   store: sessionStore
@@ -202,6 +225,7 @@ setupPassport(users);
 
 var apiRouter = require('./routes/api');
 app.use('/api', apiRouter);
+app.get('/ip', (request, response) => response.send(request.ip));
 app.use('/', router);
 app.use('/', indexRouter);
 

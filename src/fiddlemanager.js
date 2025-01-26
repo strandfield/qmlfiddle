@@ -6,6 +6,8 @@ class FiddleManager
 
         this.projects = {};
 
+        this.maxFiddleId = 10000000;
+        this.userMinFiddleId = 4096;
         this.editKeySalt = Math.random().toString();
     }
 
@@ -40,7 +42,7 @@ class FiddleManager
 
     #generateFiddleId() {
         // note: we may increase the maxid as we go along
-        const maxid = 10000000; // TODO: put that value into conf
+        const maxid = this.maxFiddleId;
         return 1 + Math.trunc(Math.random() * maxid);
     }
 
@@ -50,7 +52,7 @@ class FiddleManager
 
     createFiddle(title, content) {
         let id = this.#generateFiddleId();
-        while (id < 4096 || this.getFiddleById(id) != undefined) {
+        while (id < this.userMinFiddleId || this.getFiddleById(id) != undefined) {
             id = this.#generateFiddleId();
         }
 
