@@ -92,7 +92,8 @@ function parseConf() {
 
 const defaultConf = {
   features: {
-    uploadEnabled: true
+    uploadEnabled: true, // TODO: add option to allow upload only for registeredUser
+    signup: true
   },
   fiddles: {
     maxFiddleSizeUnregistered: "4kb",
@@ -117,6 +118,11 @@ if (conf?.features?.upload != undefined) {
   uploadEnabled = conf.features.upload
 }
 
+let signupEnabled = defaultConf.features.signup;
+if (conf?.features?.signup != undefined) {
+  signupEnabled = conf.features.signup
+}
+
 function parseMaxFiddleSize(value)  {
   if (typeof value == 'number') {
     return value;
@@ -135,7 +141,8 @@ function parseMaxFiddleSize(value)  {
 
 app.locals.conf = {
   features: {
-    uploadEnabled: uploadEnabled
+    uploadEnabled: uploadEnabled,
+    signup: signupEnabled
   },
   fiddles: {
     maxFiddleSizeUnregistered: parseMaxFiddleSize(conf?.fiddles?.maxFiddleSizeUnregistered ?? defaultConf.fiddles.maxFiddleSizeUnregistered),

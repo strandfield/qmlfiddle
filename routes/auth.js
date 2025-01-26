@@ -35,7 +35,8 @@ router.get('/login', function(req, res, next) {
 router.get('/signup', function(req, res, next) {
   res.render('signup', { 
     title: 'Sign up - QML Fiddle',
-    query: req.query
+    query: req.query,
+    signupEnabled: req.app.locals.conf.features.signup
   });
 });
 
@@ -52,6 +53,10 @@ router.post('/logout', function(req, res, next) {
 });
 
 router.post('/signup', function(req, res, next) {
+  if (!req.app.locals.conf.features.signup) {
+    return res.redirect("/");
+  }
+
   let users = req.app.locals.userManager;
   let u = users.createUser(req.body.username, req.body.email, req.body.password);
   if (!u) {
