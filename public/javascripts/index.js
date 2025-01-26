@@ -154,7 +154,14 @@ var gFiddleEditKey = "";
 }
 
 var qtInstance = null;
-var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
+
+function onEditorViewUpdate(viewUpdate) {
+    if (viewUpdate.docChanged) {
+        UpdateCodeEditorLimitIndicator();
+    }
+}
+
+var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"), onEditorViewUpdate);
 
 function SetDefaultDocument() {
     const code = document.getElementById("code");
@@ -170,6 +177,33 @@ function SetDefaultDocument() {
         });
 
         code.firstElementChild.remove();
+    }
+}
+
+var gCodeEditorLimitIndicator = null;
+function GetOrCreateCodeEditorLimitIndicator() {
+    if (!gCodeEditorLimitIndicator) {
+        const code = document.getElementById("code");
+        gCodeEditorLimitIndicator = document.createElement('DIV');
+        gCodeEditorLimitIndicator.id = "editor-char-limit-indicator";
+        gCodeEditorLimitIndicator.innerText = "hello";
+        code.appendChild(gCodeEditorLimitIndicator);
+    }
+
+    return gCodeEditorLimitIndicator;
+}
+
+function UpdateCodeEditorLimitIndicator() {
+    let elem = GetOrCreateCodeEditorLimitIndicator();
+    const n = gCodeEditor.state.doc.length;
+    elem.innerText = `${n} / ${gMaxFiddleSize}`;
+
+    if (n > gMaxFiddleSize) {
+        GetSaveButton().disabled = true;
+        gCodeEditorLimitIndicator.classList.add("char-limit-exceeded")
+    } else if(GetSaveButton().disabled) {
+        GetSaveButton().disabled = false;
+        gCodeEditorLimitIndicator.classList.remove("char-limit-exceeded")
     }
 }
 
@@ -309,6 +343,8 @@ async function init()
 
             const dont_notify = true;
             writeConsole("[info] QML engine is ready.", dont_notify);
+
+            UpdateCodeEditorLimitIndicator();
         }
 
         GetSaveButton().onclick = SaveFiddle;

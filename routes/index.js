@@ -5,6 +5,8 @@ var router = express.Router();
 const path = require('path');
 const fs = require('node:fs');
 
+const { getUserMaxFiddleSize } = require("../src/utils")
+
 let defaultDocument = "";
 
 fs.readFile(path.join(__dirname, "../examples/default.qml"), 'utf8', (err, data) => {
@@ -27,6 +29,7 @@ function GetFiddle(req, res, next) {
   res.render('index', { 
     title: 'QML Fiddle',
     user: req.user,
+    maxFiddleSize: getUserMaxFiddleSize(req.user, req.app.locals.conf),
     defaultDocument: fiddle 
   });
 }
@@ -74,6 +77,7 @@ router.get('/', function(req, res, next) {
   res.render('index', { 
     title: 'QML Fiddle',
     user: req.user,
+    maxFiddleSize: getUserMaxFiddleSize(req.user, req.app.locals.conf),
     defaultDocument: {
       id: "",
       title: "",

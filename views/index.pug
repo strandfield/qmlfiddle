@@ -14,6 +14,7 @@ html
     script.
       var gFiddleId = "#{defaultDocument.id.toString(16)}";
       var gUploadEnabled = #{conf.features.uploadEnabled};
+      var gMaxFiddleSize = #{maxFiddleSize};
   body(onload="init()")
     div(id="layout-container")
       header(id="header") 
@@ -22,8 +23,8 @@ html
         div(class="flex-grow-1")
           input(type="text", id="titleInput", name="title", placeholder="Untitled fiddle", value=defaultDocument.title)
         div(id="runButtonGroup" class="btn-group")
-          button(type="button", id="runButton" class="btn btn-success btn-sm") Auto Run
-          button(type="button", class="btn btn-success dropdown-toggle dropdown-toggle-split btn-sm", data-bs-toggle="dropdown", aria-expanded="false")
+          button(type="button", id="runButton" class="btn btn-warning btn-sm") Auto Run
+          button(type="button", class="btn btn-warning dropdown-toggle dropdown-toggle-split btn-sm", data-bs-toggle="dropdown", aria-expanded="false")
             span(class="visually-hidden") Toggle Dropdown
           ul(class="dropdown-menu")
             li
@@ -45,7 +46,7 @@ html
       main(id="content")
         div(id="maincontent", class="splith")
           div(id="code")
-            pre(id="hardcoded-fiddle")= defaultDocument.content
+            pre(style="display: none;")= defaultDocument.content
           div(id="screen")
             div(id="screen-overlay")
               div(id="qtspinner")

@@ -90,6 +90,21 @@ body {
 
 #code {
   overflow-y: scroll;
+  position: relative;
+}
+
+#editor-char-limit-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  border: 1px solid lavender;
+  border-radius: 4px;
+  background-color: whitesmoke;
+  padding: 4px;
+}
+
+.char-limit-exceeded {
+  color: red;
 }
 
 #screen {
@@ -147,10 +162,6 @@ body {
 #qtspinner {
   margin: 0;
   padding: 1em;
-}
-
-#hardcoded-fiddle {
-  display: none;
 }
 
 .splith {

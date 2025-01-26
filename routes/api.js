@@ -1,6 +1,9 @@
 
 var express = require('express');
 
+const { getUserMaxFiddleSize } = require("../src/utils")
+
+
 function GetSiteInfo(req, res, next) {
   res.json({
     features: {
@@ -54,14 +57,7 @@ function PostFiddle(req, res, next) {
     });
   }
 
-  let max_length = req.app.locals.conf.fiddles.maxFiddleSizeUnregistered;
-  if (req.user) {
-    if (req.user.emailVerified) {
-      max_length = req.app.locals.conf.fiddles.maxFiddleSizeVerified;
-    } else {
-      max_length = req.app.locals.conf.fiddles.maxFiddleSizeUnverified;
-    }
-  }
+  const max_length = getUserMaxFiddleSize(req.user, req.app.locals.conf);
   if (max_length > 0 && content.length > max_length) {
     return res.json({
       accepted: false,
