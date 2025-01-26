@@ -85,7 +85,7 @@ function PostFiddle(req, res, next) {
     }
 
     const fiddle = manager.updateFiddle(id, title, content);
-    console.assert(fiddle != null, "update must no fail");
+    console.assert(fiddle != null, "update must not fail");
 
     result.editKey = manager.getFiddleEditKey(fiddle);
   } 

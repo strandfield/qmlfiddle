@@ -25,7 +25,7 @@ class FiddleManager
 
     getFiddleById(fiddleId) {
         fiddleId = this.#unwrap(fiddleId);
-        let stmt = this.database.prepare(`SELECT id, title, content FROM fiddle WHERE id = ?`);
+        let stmt = this.database.prepare(`SELECT id, title, content, authorId, dateCreated, dateModified FROM fiddle WHERE id = ?`);
         return stmt.get(fiddleId);
     }
 
