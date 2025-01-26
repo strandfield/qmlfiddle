@@ -11,6 +11,13 @@ function getUserMaxFiddleSize(user, conf) {
     return conf.fiddles.maxFiddleSizeUnregistered;
 }
 
+function mapFiddleIds(list) {
+    for (let e of list) {
+        e.id = e.id.toString(16);
+    }
+}
+
 module.exports = { 
-    getUserMaxFiddleSize
+    getUserMaxFiddleSize,
+    mapFiddleIds
 };

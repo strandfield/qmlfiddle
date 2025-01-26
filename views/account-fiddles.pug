@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    h1 My fiddles
+    if fiddles.length == 0
+        p.
+            You haven't created any fiddle yet. #[a(href="/") Start now!]
+    else
+        p.
+            These are all your fiddles, ordered from newest to oldest.
+    table 
+        tbody 
+            each fiddle in fiddles 
+                tr 
+                    td #{fiddle.title}
+                    td
+                        a(href=`/${fiddle.id}`, class="btn btn-sm btn-secondary mx-2") View
+                    td
+                        a(href=`/${fiddle.id}/edit`, class="btn btn-sm btn-primary mx-2") Edit
+                    td
+                        form(action=`/${fiddle.id}/delete`, method="post")
+                            button(class="btn btn-danger btn-sm mx-2", type="submit") Delete

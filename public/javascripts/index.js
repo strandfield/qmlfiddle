@@ -151,6 +151,10 @@ var gFiddleEditKey = "";
 {
     let search_params = new URLSearchParams(window.location.search);
     gFiddleEditKey = search_params.get("editKey") ?? "";
+    search_params.delete("editKey");
+    if (gFiddleEditKey != "") {
+        window.history.pushState({}, document.title, window.location.pathname);
+    }
 }
 
 var qtInstance = null;

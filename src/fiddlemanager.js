@@ -124,10 +124,21 @@ class FiddleManager
         }
     }
 
+    deleteFiddle(id) {
+        id = this.#unwrap(id);
+        let stmt = this.database.prepare(`DELETE FROM fiddle WHERE id = ?`);
+        stmt.run(id);
+    }
+
     setFiddleAuthorId(id, authorId) {
         let stmt = this.database.prepare(`UPDATE fiddle SET authorId = ? WHERE id = ?`);
         const info = stmt.run(authorId, id);
         return info.changes == 1;
+    }
+
+    getFiddlesByAuthorId(authorId) {
+        let stmt = this.database.prepare(`SELECT id, title, dateCreated FROM fiddle WHERE authorId = ? ORDER BY dateCreated DESC`);
+        return stmt.all(authorId);
     }
 
     loadFiddlesFromDirectory(dirPath, userId = null) {

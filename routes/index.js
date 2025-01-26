@@ -34,6 +34,52 @@ function GetFiddle(req, res, next) {
   });
 }
 
+function RedirectToFiddleEdit(req, res, next) {
+  const id = req.params.fiddleId;
+
+  if (!req.user) {
+    return res.redirect("/" + id);
+  }
+
+  const manager = req.app.locals.fiddleManager;
+  const fiddle = manager.getFiddleByIdEx(id, ["authorId"]);
+
+  if (!fiddle) {
+    return next();
+  }
+
+  if (fiddle.authorId != req.user.id) {
+    return res.redirect("/" + id);
+  }
+
+  const edit_key = manager.getFiddleEditKey(id);
+  return res.redirect("/" + id + "?editKey=" + edit_key);
+}
+
+function DeleteFiddle(req, res, next) {
+  const id = req.params.fiddleId;
+
+  if (!req.user) {
+    return res.redirect("/" + id);
+  }
+
+  const manager = req.app.locals.fiddleManager;
+  const fiddle = manager.getFiddleByIdEx(id, ["authorId"]);
+
+  if (!fiddle) {
+    return next();
+  }
+
+  if (fiddle.authorId != req.user.id) {
+    return res.redirect("/" + id);
+  }
+
+  manager.deleteFiddle(id);
+
+  return res.redirect("/account/fiddles");
+}
+
+
 function GetAllFiddles(req, res, next) {
   const manager = req.app.locals.fiddleManager;
   const fiddles = manager.getAllFiddles();
@@ -91,5 +137,7 @@ router.get('/privacy.html', GetPrivacyPolicyPage);
 router.get('/documentation.html', GetDocumentationPage);
 router.get('/rawusercontent/:fiddleId', GetFiddleRaw);
 router.get('/:fiddleId', GetFiddle);
+router.get('/:fiddleId/edit', RedirectToFiddleEdit);
+router.post('/:fiddleId/delete', DeleteFiddle);
 
 module.exports = router;
