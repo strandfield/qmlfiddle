@@ -18,6 +18,9 @@ class UserManager
     }
 
     createUser(username, email, password) {
+        if (!email.includes("@") || username.length == 0 || password.length == 0) {
+            return undefined;
+        }
         const salt = crypto.randomBytes(saltLength);
         const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
         let stmt = this.database.prepare(`INSERT INTO user(username, email, hashedPassword, salt) VALUES(?,?,?,?)`);

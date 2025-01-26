@@ -33,7 +33,10 @@ router.get('/login', function(req, res, next) {
 });
 
 router.get('/signup', function(req, res, next) {
-  res.render('signup');
+  res.render('signup', { 
+    title: 'Sign up - QML Fiddle',
+    query: req.query
+  });
 });
 
 router.post('/login/password', passport.authenticate('local', {
@@ -52,7 +55,7 @@ router.post('/signup', function(req, res, next) {
   let users = req.app.locals.userManager;
   let u = users.createUser(req.body.username, req.body.email, req.body.password);
   if (!u) {
-    return next("could not create user");
+    return res.redirect("/signup?status=failure");
   }
 
   req.login(u, function(err) {
