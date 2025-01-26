@@ -1,17 +1,13 @@
 var express = require('express');
 var passport = require('passport');
 var LocalStrategy = require('passport-local');
-var crypto = require('crypto');
 
 function setupPassport(userManager) {
-  const opts = {
-    usernameField: "email"
-  };
-  let strategy = new LocalStrategy(opts, function verify(email, password, cb) {
-    if (!userManager.authenticate(email, password)) {
+  let strategy = new LocalStrategy(function verify(usernameOrEmail, password, cb) {
+    if (!userManager.authenticate(usernameOrEmail, password)) {
       return cb(null, false, { message: 'Incorrect username or password.' });
     } else {
-      return cb(null, userManager.getUser(email));
+      return cb(null, userManager.getUserByUsernameOrEmail(usernameOrEmail));
     }
   });
 
@@ -54,7 +50,7 @@ router.post('/logout', function(req, res, next) {
 
 router.post('/signup', function(req, res, next) {
   let users = req.app.locals.userManager;
-  let u = users.createUser(req.body.email, req.body.password);
+  let u = users.createUser(req.body.username, req.body.email, req.body.password);
   if (!u) {
     return next("could not create user");
   }
@@ -67,7 +63,11 @@ router.post('/signup', function(req, res, next) {
   });
 });
 
+function getAuthRouter() {
+  return router;
+}
+
 module.exports = {
   setupPassport,
-  router
+  getAuthRouter
 };

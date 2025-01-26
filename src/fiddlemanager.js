@@ -116,11 +116,21 @@ class FiddleManager
 
     insertOrUpdateFiddle(id, title, content) {
         id = this.#unwrap(id);
-        let stmt = this.database.prepare(`INSERT OR REPLACE INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
-        stmt.run(id, title, content, this.getCurrentTimestamp());
+        let stmt = this.database.prepare(`INSERT OR IGNORE INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
+        let info = stmt.run(id, title, content, this.getCurrentTimestamp());
+
+        if (!info.lastInsertRowid) {
+            this.updateFiddle(id, title, content);
+        }
     }
 
-    loadFiddlesFromDirectory(dirPath) {
+    setFiddleAuthorId(id, authorId) {
+        let stmt = this.database.prepare(`UPDATE fiddle SET authorId = ? WHERE id = ?`);
+        const info = stmt.run(authorId, id);
+        return info.changes == 1;
+    }
+
+    loadFiddlesFromDirectory(dirPath, userId = null) {
         const path = require('path');
         const fs = require('node:fs');
 
@@ -149,6 +159,10 @@ class FiddleManager
             }
 
             this.insertOrUpdateFiddle(id, title, content);
+
+            if (userId) {
+                this.setFiddleAuthorId(id, userId);
+            }
         }
     }
 };

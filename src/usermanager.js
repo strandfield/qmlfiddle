@@ -17,37 +17,65 @@ class UserManager
         return this.database;
     }
 
-    createUser(email, password) {
+    createUser(username, email, password) {
         const salt = crypto.randomBytes(saltLength);
         const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
-        let stmt = this.database.prepare(`INSERT INTO user(email, hashedPassword, salt) VALUES(?,?,?)`);
-        const info = stmt.run(email, hashed_password, salt);
+        let stmt = this.database.prepare(`INSERT INTO user(username, email, hashedPassword, salt) VALUES(?,?,?,?)`);
+        const info = stmt.run(username, email, hashed_password, salt);
         if (!info.lastInsertRowid) {
             return undefined;
         } else {
-            return this.getUser(email);
+            return this.getUserById(info.lastInsertRowid);
         }
     }
 
-    createSuperUser(email, password) {
+    createSuperUser(username, email, password) {
         const salt = crypto.randomBytes(saltLength);
         const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
-        let stmt = this.database.prepare(`INSERT INTO user(email, hashedPassword, salt, superUser) VALUES(?,?,?,1)`);
-        const info = stmt.run(email, hashed_password, salt);
+        let stmt = this.database.prepare(`INSERT INTO user(username, email, hashedPassword, salt, superUser) VALUES(?,?,?,?,1)`);
+        const info = stmt.run(username, email, hashed_password, salt);
+        return info.lastInsertRowid;
     }
 
-    getUser(email) {
-        let stmt = this.database.prepare(`SELECT id, email, superUser, maxFiddleSize, maxFiddles FROM user WHERE email = ?`);
+    createFakeUser(username) {
+        const email = username + "@qmlfiddle.net";
+        let stmt = this.database.prepare(`INSERT INTO user(username, email) VALUES(?,?)`);
+        const info = stmt.run(username, email);
+        return info.lastInsertRowid;
+    }
+
+    getUserByUsername(username) {
+        let stmt = this.database.prepare(`SELECT id, username, email, emailVerified, superUser FROM user WHERE username = ?`);
+        return stmt.get(username);
+    }
+
+    getUserByEmail(email) {
+        let stmt = this.database.prepare(`SELECT id, username, email, emailVerified, superUser FROM user WHERE email = ?`);
         return stmt.get(email);
     }
 
-    hasUser(email) {
-        return this.getUser(email) != undefined;
+    getUserByUsernameOrEmail(usernameOrEmail) {
+        let stmt = this.database.prepare(`SELECT id, username, email, emailVerified, superUser FROM user WHERE username = ? OR email = ?`);
+        return stmt.get(usernameOrEmail, usernameOrEmail);
     }
 
-    authenticate(email, password) {
-        let stmt = this.database.prepare(`SELECT email, hashedPassword, salt FROM user WHERE email = ?`);
-        const row = stmt.get(email);
+    getUserById(userId) {
+        let stmt = this.database.prepare(`SELECT id, username, email, emailVerified, superUser FROM user WHERE id = ?`);
+        return stmt.get(userId);
+    }
+
+    hasUser(emailOrUsername) {
+        if (emailOrUsername.includes("@")) {
+            return this.getUserByEmail(emailOrUsername) != undefined;
+        } else {
+            return this.getUserByUsername(emailOrUsername) != undefined;
+        }
+    }
+
+    authenticate(emailOrUsername, password) {
+        const column = emailOrUsername.includes("@") ? "email" : "username";
+        let stmt = this.database.prepare(`SELECT hashedPassword, salt FROM user WHERE ${column} = ?`);
+        const row = stmt.get(emailOrUsername);
         if (row == undefined) {
             return false;
         }
@@ -73,14 +101,6 @@ class UserManager
         let stmt = this.database.prepare(`UPDATE user SET ${name} = ? WHERE id = ?`);
         const info = stmt.run(value, userId);
         return info.changes == 1;
-    }
-
-    updateUserMaxFiddleSize(userId, value) {
-        return this.updateUserRights(userId, "maxFiddleSize", value);
-    }
-
-    updateUserMaxFiddles(userId, value) {
-        return this.updateUserRights(userId, "maxFiddles", value);
     }
 };
 

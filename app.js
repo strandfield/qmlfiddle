@@ -151,6 +151,24 @@ if (app.locals.conf.limits.maxFiddleSize > 0) {
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);
 
+const UserManager = require("./src/usermanager");
+let users = new UserManager(db);
+if (conf?.crypto?.pbkdf2Iterations) {
+  users.pbkdf2Iterations = parseInt(conf.crypto.pbkdf2Iterations);
+}
+app.locals.userManager = users;
+// create admin user if it does not exist
+if (conf.admin && conf.admin.email && conf.admin.password) {
+  const username = conf.admin.username ?? "admin"; 
+  if (!users.hasUser(username)) {
+    users.createSuperUser(username, conf.admin.email, conf.admin.password);
+  }
+}
+// create fake user "node"
+if (!users.hasUser("node")) {
+  users.createFakeUser("node");
+}
+
 function setupFiddleManager(instance, conf) {
   if (conf?.fiddles?.maxFiddleId) {
     instance.maxFiddleId = parseInt(conf.fiddles.maxFiddleId);
@@ -163,20 +181,7 @@ function setupFiddleManager(instance, conf) {
 const FiddleManager = require("./src/fiddlemanager");
 app.locals.fiddleManager = new FiddleManager(db);
 setupFiddleManager(app.locals.fiddleManager, conf);
-app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"));
-
-const UserManager = require("./src/usermanager");
-let users = new UserManager(db);
-if (conf?.crypto?.pbkdf2Iterations) {
-  users.pbkdf2Iterations = parseInt(conf.crypto.pbkdf2Iterations);
-}
-app.locals.userManager = users;
-// create admin user if it does not exist
-if (conf.admin && conf.admin.email && conf.admin.password) {
-  if (!users.hasUser(conf.admin.email)) {
-    users.createSuperUser(conf.admin.email, conf.admin.password);
-  }
-}
+app.locals.fiddleManager.loadFiddlesFromDirectory(path.join(__dirname, "examples"), users.getUserByUsername("node").id);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -220,13 +225,13 @@ app.use(session({
   store: sessionStore
 }));
 app.use(passport.authenticate('session'));
-var { router, setupPassport } = require('./routes/auth');
+var { getAuthRouter, setupPassport } = require('./routes/auth');
 setupPassport(users);
 
 var apiRouter = require('./routes/api');
 app.use('/api', apiRouter);
 app.get('/ip', (request, response) => response.send(request.ip));
-app.use('/', router);
+app.use('/', getAuthRouter());
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler

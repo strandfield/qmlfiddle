@@ -5,6 +5,9 @@ block content
         h1 Sign up
             form(action="/signup", method="post")
                 section 
+                    label(for="username") username 
+                    input(id="username", name="username", type="text", required)
+                section 
                     label(for="email") email 
                     input(id="email", name="email", type="text", required)
                 section 

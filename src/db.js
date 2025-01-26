@@ -9,12 +9,12 @@ function checkTableExists(db, tableName) {
 function createUserTable(db) {
 	db.exec(`CREATE TABLE IF NOT EXISTS "user" ( 
     	"id"              INTEGER NOT NULL PRIMARY KEY UNIQUE, 
+		"username"        TEXT NOT NULL UNIQUE, 
     	"email"           TEXT UNIQUE, 
+		"emailVerified"   INTEGER NOT NULL DEFAULT 0, 
     	"hashedPassword"  BLOB, 
     	"salt"            BLOB,
-		"superUser"       INTEGER NOT NULL DEFAULT 0,
-		"maxFiddleSize"   INTEGER NOT NULL DEFAULT 0,
-		"maxFiddles"      INTEGER NOT NULL DEFAULT 0
+		"superUser"       INTEGER NOT NULL DEFAULT 0
     )`);
 }
 
