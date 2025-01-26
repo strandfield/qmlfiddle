@@ -186,8 +186,3 @@ body {
 .cm-editor {
     height: 100%;
 }
-
-/* undo some boostrap defaults */
-img {
-  vertical-align: initial;
-}

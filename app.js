@@ -229,9 +229,12 @@ var { getAuthRouter, setupPassport } = require('./routes/auth');
 setupPassport(users);
 
 var apiRouter = require('./routes/api');
+var accountRouter = require('./routes/account');
+
 app.use('/api', apiRouter);
 app.get('/ip', (request, response) => response.send(request.ip));
 app.use('/', getAuthRouter());
+app.use('/', accountRouter);
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler

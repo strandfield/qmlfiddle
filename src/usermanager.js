@@ -97,10 +97,11 @@ class UserManager
         return info.changes == 1;
     }
 
-    updateUserRights(userId, name, value) {
-        let stmt = this.database.prepare(`UPDATE user SET ${name} = ? WHERE id = ?`);
-        const info = stmt.run(value, userId);
-        return info.changes == 1;
+    deleteUser(userId) {
+        let stmt = this.database.prepare(`DELETE FROM fiddle WHERE authorId = ?`);
+        stmt.run(userId);
+        stmt = this.database.prepare(`DELETE FROM user WHERE id = ?`);
+        stmt.run(userId);
     }
 };
 

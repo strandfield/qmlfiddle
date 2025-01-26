@@ -10,3 +10,5 @@ Terminal icon (`terminal.svg`), https://www.svgrepo.com/svg/336126/terminal (MIT
 Terminal activity indicator (`red-circle.svg`), https://www.svgrepo.com/svg/397690/red-circle (Apache)
 
 Trash icon (`trash.svg`), https://www.svgrepo.com/svg/438057/trash-1 (MIT).
+
+Account icon (`account.svg`), https://www.svgrepo.com/svg/453446/account (MIT).

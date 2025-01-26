@@ -38,8 +38,8 @@ html
             input(type="button", id="forkButton", class="btn btn-light btn-sm action-btn", value="Fork")
           if user 
             li
-              form(action="/logout", method="post")
-                button(class="btn btn-danger btn-sm action-btn", type="submit") Sign out
+              a(href="/account", title="Account")
+                img(width="26", src="/images/account.svg")
           else 
             li 
               a(href="/login", class="btn btn-success btn-sm action-btn") Sign in
@@ -70,7 +70,7 @@ html
           li
             a(id="devtoolsButton", href="#", title="Show/Hide DevTools", style="position: relative;")
               img(width="16", src="/images/terminal.svg", style="position: relative;")
-              img(id="terminalActivityIndicator", width="8", src="/images/red-circle.svg", style="position: absolute; right: -4px; top: -4px;")
+              img(id="terminalActivityIndicator", width="8", src="/images/red-circle.svg", style="position: absolute; right: -4px; top: 0px;")
           li
             a(href="/privacy.html", title="Privacy policy")
               img(width="16", src="/images/biscuit.svg")

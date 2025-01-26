@@ -63,6 +63,29 @@ router.post('/signup', function(req, res, next) {
   });
 });
 
+function deleteUserAccount(userManager, user, reqBody) {
+  if (!user || reqBody.username != user.username) {
+    return false;
+  }
+  if (!userManager.authenticate(reqBody.username, reqBody.password)) {
+    return false;
+  }
+
+  userManager.deleteUser(user.id);
+  return true;
+}
+
+router.post('/account/delete', function(req, res, next) {
+  if (!deleteUserAccount(req.app.locals.userManager, req.user, req.body)) {
+    return res.redirect("/account/delete");
+  }
+
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
+
 function getAuthRouter() {
   return router;
 }

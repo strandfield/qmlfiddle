@@ -1,6 +1,4 @@
 
-const Database = require('better-sqlite3');
-
 function getUserMaxFiddleSize(user, conf) {
     if (user) {
         if (user.emailVerified) {
