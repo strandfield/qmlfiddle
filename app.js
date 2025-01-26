@@ -158,10 +158,12 @@ if (conf?.crypto?.pbkdf2Iterations) {
 }
 app.locals.userManager = users;
 // create admin user if it does not exist
-if (conf.admin && conf.admin.email && conf.admin.password) {
-  const username = conf.admin.username ?? "admin"; 
-  if (!users.hasUser(username)) {
-    users.createSuperUser(username, conf.admin.email, conf.admin.password);
+if (!users.hasSuperUser()) {
+  if (conf.admin && conf.admin.email && conf.admin.password) {
+    const username = conf.admin.username ?? "admin"; 
+    if (!users.hasUser(username)) {
+      users.createSuperUser(username, conf.admin.email, conf.admin.password);
+    }
   }
 }
 // create fake user "node"

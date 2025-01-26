@@ -37,6 +37,12 @@ class UserManager
         return info.lastInsertRowid;
     }
 
+    hasSuperUser() {
+        let stmt = this.database.prepare(`SELECT count(*) as total FROM user WHERE superUser = 1`);
+        const row = stmt.get();
+        return row.total > 0;
+    }
+
     createFakeUser(username) {
         const email = username + "@qmlfiddle.net";
         let stmt = this.database.prepare(`INSERT INTO user(username, email) VALUES(?,?)`);
