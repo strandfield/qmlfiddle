@@ -5,7 +5,7 @@ var router = express.Router();
 const path = require('path');
 const fs = require('node:fs');
 
-const { getUserMaxFiddleSize } = require("../src/utils")
+const { getUserMaxFiddleSize, mapFiddleIds, isSuperUser } = require("../src/utils")
 
 let defaultDocument = "";
 
@@ -84,7 +84,27 @@ function DeleteFiddle(req, res, next) {
 
 function GetAllFiddles(req, res, next) {
   const manager = req.app.locals.fiddleManager;
-  const fiddles = manager.getAllFiddles();
+
+  let fields = ["id", "title"];
+
+  if (isSuperUser(req.user)) {
+    fields.push("authorId");
+  }
+
+  let fiddles = manager.getAllFiddles(fields);
+
+  if (isSuperUser(req.user)) {
+    const users = req.app.locals.userManager;
+    let usermap = new Map();
+    for(let f of fiddles) {
+      let author = usermap.get(f.authorId);
+      if (author == undefined && f.authorId != null) {
+        author = users.getUserById(f.authorId);
+        usermap.set(f.authorId, author);
+      }
+      f.author = author;
+    }
+  }
 
   res.render('list', { 
     title: 'QML Fiddle',
@@ -118,6 +138,26 @@ function GetFiddleRaw(req, res, next) {
   res.send(fiddle.content);
 }
 
+function GetUserPage(req, res, next) {
+  const username = req.params.username;
+  const users = req.app.locals.userManager;
+  const user = users.getUserByUsername(username);
+
+  if (!user) {
+    return next();
+  }
+
+  const fiddles = req.app.locals.fiddleManager;
+  let user_fiddles = fiddles.getFiddlesByAuthorId(user.id);
+  mapFiddleIds(user_fiddles);
+  
+  res.render('user', { 
+    title: `${user.username} - QML Fiddle`,
+    user: req.user,
+    targetUser: user,
+    targetUserFiddles: user_fiddles
+  });
+}
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -138,6 +178,7 @@ router.get('/list', GetAllFiddles);
 router.get('/privacy.html', GetPrivacyPolicyPage);
 router.get('/documentation.html', GetDocumentationPage);
 router.get('/rawusercontent/:fiddleId', GetFiddleRaw);
+router.get('/u/:username', GetUserPage);
 router.get('/:fiddleId', GetFiddle);
 router.get('/:fiddleId/edit', RedirectToFiddleEdit);
 router.post('/:fiddleId/delete', DeleteFiddle);

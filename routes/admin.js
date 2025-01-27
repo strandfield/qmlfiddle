@@ -82,7 +82,23 @@ function UpdateFiddleSizeLimits(req, res, next) {
   res.redirect("/admin");
 }
 
+function GetAllUsersPage(req, res, next) {
+  if (!isSuperUser(req.user)) {
+    return res.redirect("/");
+  }
+
+  const users = req.app.locals.userManager;
+  const allusers = users.getAllUsers();
+
+  res.render('allusers', { 
+    title: 'All users - QML Fiddle',
+    user: req.user,
+    allusers: allusers
+  });
+}
+
 router.get('/admin', GetAdminPage);
+router.get("/allusers", GetAllUsersPage);
 router.post('/admin/delete/fiddle', DeleteFiddle);
 router.post('/admin/delete/user', DeleteUser);
 router.post('/admin/enable/signup', EnableSignups);

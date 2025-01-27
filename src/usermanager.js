@@ -108,6 +108,10 @@ class UserManager
         return info.changes == 1;
     }
 
+    getAllUsers() {
+        let stmt = this.database.prepare(`SELECT username, email FROM user`);
+        return stmt.all();
+    }
 };
 
 module.exports = UserManager;
