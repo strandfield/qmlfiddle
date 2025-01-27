@@ -20,6 +20,19 @@ body {
   padding-left: 1ex;
 }
 
+#actions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-right: 8px;
+}
+
+#actions > li {
+  display: inline-block;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 #content {
   min-height: calc(100vh - 36px - 28px);
   margin: 0 auto;

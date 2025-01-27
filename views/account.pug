@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    h1 My Account 
+    div(class="d-flex align-items-center gap-3 mb-4")
+        span Hello #{user.username} !
+        form(action="/logout", method="post")
+            button(class="btn btn-warning btn-sm action-btn", type="submit") Sign out
+    h2 Actions 
+    ul(class="mb-4")
+        li 
+            a(href="/account/fiddles") Manage my fiddles
+        li 
+            a(href="/account/credentials") Change my password, username or email
+    h2 Danger zone
+    a(class="btn btn-danger btn-sm action-btn", href="/account/delete") Delete my account

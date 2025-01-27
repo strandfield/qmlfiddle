@@ -90,6 +90,21 @@ body {
 
 #code {
   overflow-y: scroll;
+  position: relative;
+}
+
+#editor-char-limit-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  border: 1px solid lavender;
+  border-radius: 4px;
+  background-color: whitesmoke;
+  padding: 4px;
+}
+
+.char-limit-exceeded {
+  color: red;
 }
 
 #screen {
@@ -149,10 +164,6 @@ body {
   padding: 1em;
 }
 
-#hardcoded-fiddle {
-  display: none;
-}
-
 .splith {
     display: flex;
     flex-direction: row;
@@ -174,9 +185,4 @@ body {
 
 .cm-editor {
     height: 100%;
-}
-
-/* undo some boostrap defaults */
-img {
-  vertical-align: initial;
 }

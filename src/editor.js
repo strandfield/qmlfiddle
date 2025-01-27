@@ -28,9 +28,18 @@ let sourceLinter = new Compartment;
 
 const nullLinter = linter(view => []);
 
-function createEditor(parentElement) {
+function createEditor(parentElement, updateListener = ()=>{}) {
 	return new EditorView({
-		extensions: [basicSetup,  syntaxHighlighting(myHighlightStyle), indentUnit.of("    "), keymap.of([indentWithTab]), qml(), sourceLinter.of(nullLinter), lintGutter()],
+		extensions: [
+			basicSetup, 
+			syntaxHighlighting(myHighlightStyle), 
+			indentUnit.of("    "), 
+			keymap.of([indentWithTab]), 
+			qml(), 
+			sourceLinter.of(nullLinter), 
+			lintGutter(),
+			EditorView.updateListener.of(updateListener)
+		],
 		parent: parentElement
 	});
 }

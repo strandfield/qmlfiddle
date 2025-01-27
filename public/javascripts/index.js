@@ -151,10 +151,25 @@ var gFiddleEditKey = "";
 {
     let search_params = new URLSearchParams(window.location.search);
     gFiddleEditKey = search_params.get("editKey") ?? "";
+    search_params.delete("editKey");
+    if (gFiddleEditKey != "") {
+        window.history.pushState({}, document.title, window.location.pathname);
+    }
 }
 
 var qtInstance = null;
-var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"));
+
+var gNumberOfChanges = 0;
+const gMinChangesForSave = 7;
+function onEditorViewUpdate(viewUpdate) {
+    if (viewUpdate.docChanged) {
+        gNumberOfChanges += 1;
+        UpdateCodeEditorLimitIndicator();
+        UpdateSaveButtonState();
+    }
+}
+
+var gCodeEditor = CodeEditor.createEditor(document.getElementById("code"), onEditorViewUpdate);
 
 function SetDefaultDocument() {
     const code = document.getElementById("code");
@@ -171,6 +186,58 @@ function SetDefaultDocument() {
 
         code.firstElementChild.remove();
     }
+}
+
+var gCodeEditorLimitIndicator = null;
+function GetOrCreateCodeEditorLimitIndicator() {
+    if (!gCodeEditorLimitIndicator && gUploadEnabled) {
+        const code = document.getElementById("code");
+        gCodeEditorLimitIndicator = document.createElement('DIV');
+        gCodeEditorLimitIndicator.id = "editor-char-limit-indicator";
+        gCodeEditorLimitIndicator.innerText = "hello";
+        code.appendChild(gCodeEditorLimitIndicator);
+    }
+
+    return gCodeEditorLimitIndicator;
+}
+
+function UpdateCodeEditorLimitIndicator() {
+    let elem = GetOrCreateCodeEditorLimitIndicator();
+    if (!elem) {
+        return;
+    }
+
+    const n = gCodeEditor.state.doc.length;
+    elem.innerText = `${n} / ${gMaxFiddleSize}`;
+
+    if (n > gMaxFiddleSize) {
+        gCodeEditorLimitIndicator.classList.add("char-limit-exceeded")
+    } else if(GetSaveButton().disabled) {
+        gCodeEditorLimitIndicator.classList.remove("char-limit-exceeded")
+    }
+}
+
+function UpdateSaveButtonState() {
+    const n = gCodeEditor.state.doc.length;
+    if (n > gMaxFiddleSize) {
+        GetSaveButton().disabled = true;
+    } else if(GetSaveButton().disabled) {
+        GetSaveButton().disabled = gNumberOfChanges < gMinChangesForSave;
+    }
+}
+
+function FreezeSaveButton(message) {
+    let btn = GetSaveButton();
+    btn.disabled = true;
+    btn.classList.replace("btn-light", "btn-danger");
+    btn.value = `Error: ${message}`;
+}
+
+function UnfreezeSaveButton() {
+    let btn = GetSaveButton();
+    btn.classList.replace("btn-danger", "btn-light");
+    btn.value = "Save";
+    UpdateSaveButtonState();
 }
 
 function SetActionButtonVisible(btn, visible = true) {
@@ -199,9 +266,13 @@ function SaveFiddle() {
         data.editKey = gFiddleEditKey;
     }
 
+    GetSaveButton().disabled = true;
+
     $.post("/api/fiddle", data, function(result) {
         console.log(result);
         if (!result.accepted) {
+            FreezeSaveButton(result.message);
+            setTimeout(UnfreezeSaveButton, 1750);
             return;
         }
         if (result.fiddleId != gFiddleId) {
@@ -210,6 +281,8 @@ function SaveFiddle() {
         }
 
         gFiddleEditKey = result.editKey ?? "";
+
+        setTimeout(UpdateSaveButtonState, 450);
     });
 }
 
@@ -238,6 +311,7 @@ async function init()
     document.getElementById("clearConsoleButton").onclick = clearConsole;
     disableTerminalActivityIndicator();
 
+    GetSaveButton().disabled = true;
     SetDefaultDocument();
 
     if (!gUploadEnabled) 
@@ -309,6 +383,8 @@ async function init()
 
             const dont_notify = true;
             writeConsole("[info] QML engine is ready.", dont_notify);
+
+            UpdateCodeEditorLimitIndicator();
         }
 
         GetSaveButton().onclick = SaveFiddle;

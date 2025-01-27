@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1 All users
+  table 
+    tbody 
+      tr 
+        th Username 
+        th Email
+      each element in allusers 
+        tr 
+          td #{element.username}
+          td #{element.email}
+  p Total: #{allusers.length} users.
+
