@@ -88,6 +88,9 @@ class UserManager
         if (row == undefined) {
             return false;
         }
+        if (row.salt == null || password == null || password.length == 0) {
+            return false;
+        }
         const hashed_password = crypto.pbkdf2Sync(password, row.salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
         return crypto.timingSafeEqual(row.hashedPassword, hashed_password);
     }
