@@ -97,6 +97,23 @@ function GetAllUsersPage(req, res, next) {
   });
 }
 
+function UpdateUserPassword(req, res, next) {
+  if (!isSuperUser(req.user)) {
+    return res.redirect("/");
+  }
+
+  const users = req.app.locals.userManager;
+  let user = users.getUserByUsernameOrEmail(req.body.username);
+
+  if (!user) {
+    return res.redirect("/admin?status=failure&reason=unknownUser");
+  }
+
+  users.updateUser(user.id, user.username, user.email, req.body.newpassword);
+
+  res.redirect("/admin");
+}
+
 router.get('/admin', GetAdminPage);
 router.get("/allusers", GetAllUsersPage);
 router.post('/admin/delete/fiddle', DeleteFiddle);
@@ -104,5 +121,6 @@ router.post('/admin/delete/user', DeleteUser);
 router.post('/admin/enable/signup', EnableSignups);
 router.post('/admin/disable/signup', DisableSignups);
 router.post("/admin/update/limits/fiddle", UpdateFiddleSizeLimits);
+router.post("/admin/update/user/password", UpdateUserPassword);
 
 module.exports = router;

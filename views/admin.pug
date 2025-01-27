@@ -29,6 +29,15 @@ block content
             input(class="form-control", name="fiddleId", type="text", required)
         button(type="submit", class="btn btn-primary") Delete
 
+    h2 Change user password
+    form(action="/admin/update/user/password", method="post")
+        section(class="mb-3")
+            label(for="username", class="form-label") Username or Email
+            input(class="form-control", name="username", type="text", required)
+            label(for="newpassword", class="form-label") New password
+            input(class="form-control", name="newpassword", type="text", required)
+        button(type="submit", class="btn btn-primary") Update password 
+
     h2 Delete user 
     form(action="/admin/delete/user", method="post")
         section(class="mb-3")
