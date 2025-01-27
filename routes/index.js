@@ -48,10 +48,12 @@ function RedirectToFiddleEdit(req, res, next) {
     return next();
   }
 
-  if (fiddle.authorId != req.user.id) {
-    return res.redirect("/" + id);
+  if (!req.user.superUser) {
+    if (fiddle.authorId != req.user.id) {
+      return res.redirect("/" + id);
+    }
   }
-
+  
   const edit_key = manager.getFiddleEditKey(id);
   return res.redirect("/" + id + "?editKey=" + edit_key);
 }

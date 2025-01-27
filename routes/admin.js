@@ -13,23 +13,7 @@ function GetAdminPage(req, res, next) {
   });
 }
 
-function EditFiddle(req, res, next) {
-  if (!req.user || !req.user.superUser) {
-    return res.redirect("/");
-  }
-
-  const fiddleId = req.body.fiddleId;
-  let fiddles = req.app.locals.fiddleManager;
-  const fiddle = fiddles.getFiddleById(fiddleId);
-
-  if (!fiddle) {
-    return res.redirect("/admin?status=failure");
-  }
-
-  const edit_key = fiddles.getFiddleEditKey(fiddle);
-  return res.redirect("/" + fiddleId + "?editKey=" + edit_key);
-}
-
+// TODO: merge with DeleteFiddle() from index.js ?
 function DeleteFiddle(req, res, next) {
   if (!req.user || !req.user.superUser) {
     return res.redirect("/");
@@ -77,7 +61,6 @@ function DisableSignups(req, res, next) {
 }
 
 router.get('/admin', GetAdminPage);
-router.post('/admin/edit/fiddle', EditFiddle);
 router.post('/admin/delete/fiddle', DeleteFiddle);
 router.post('/admin/delete/user', DeleteUser);
 router.post('/admin/enable/signup', EnableSignups);

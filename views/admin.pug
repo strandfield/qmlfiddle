@@ -3,17 +3,12 @@ extends layout
 block content
     h1 Admin
     h2 Signups
+    p Signups enabled: #{conf.features.signup}.
     div(class="d-flex gap-3")
         form(action="/admin/enable/signup", method="post")
             button(type="submit", class="btn btn-primary") Enable
         form(action="/admin/disable/signup", method="post")
             button(type="submit", class="btn btn-primary") Disable
-    h2 Edit fiddle 
-    form(action="/admin/edit/fiddle", method="post")
-        section(class="mb-3")
-            label(for="fiddleId", class="form-label") Fiddle ID 
-            input(class="form-control", name="fiddleId", type="text", required)
-        button(type="submit", class="btn btn-primary") Edit
     h2 Delete fiddle 
     form(action="/admin/delete/fiddle", method="post")
         section(class="mb-3")
