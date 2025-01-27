@@ -159,9 +159,13 @@ var gFiddleEditKey = "";
 
 var qtInstance = null;
 
+var gNumberOfChanges = 0;
+const gMinChangesForSave = 7;
 function onEditorViewUpdate(viewUpdate) {
     if (viewUpdate.docChanged) {
+        gNumberOfChanges += 1;
         UpdateCodeEditorLimitIndicator();
+        UpdateSaveButtonState();
     }
 }
 
@@ -207,12 +211,33 @@ function UpdateCodeEditorLimitIndicator() {
     elem.innerText = `${n} / ${gMaxFiddleSize}`;
 
     if (n > gMaxFiddleSize) {
-        GetSaveButton().disabled = true;
         gCodeEditorLimitIndicator.classList.add("char-limit-exceeded")
     } else if(GetSaveButton().disabled) {
-        GetSaveButton().disabled = false;
         gCodeEditorLimitIndicator.classList.remove("char-limit-exceeded")
     }
+}
+
+function UpdateSaveButtonState() {
+    const n = gCodeEditor.state.doc.length;
+    if (n > gMaxFiddleSize) {
+        GetSaveButton().disabled = true;
+    } else if(GetSaveButton().disabled) {
+        GetSaveButton().disabled = gNumberOfChanges < gMinChangesForSave;
+    }
+}
+
+function FreezeSaveButton(message) {
+    let btn = GetSaveButton();
+    btn.disabled = true;
+    btn.classList.replace("btn-light", "btn-danger");
+    btn.value = `Error: ${message}`;
+}
+
+function UnfreezeSaveButton() {
+    let btn = GetSaveButton();
+    btn.classList.replace("btn-danger", "btn-light");
+    btn.value = "Save";
+    UpdateSaveButtonState();
 }
 
 function SetActionButtonVisible(btn, visible = true) {
@@ -241,9 +266,13 @@ function SaveFiddle() {
         data.editKey = gFiddleEditKey;
     }
 
+    GetSaveButton().disabled = true;
+
     $.post("/api/fiddle", data, function(result) {
         console.log(result);
         if (!result.accepted) {
+            FreezeSaveButton(result.message);
+            setTimeout(UnfreezeSaveButton, 1750);
             return;
         }
         if (result.fiddleId != gFiddleId) {
@@ -252,6 +281,8 @@ function SaveFiddle() {
         }
 
         gFiddleEditKey = result.editKey ?? "";
+
+        setTimeout(UpdateSaveButtonState, 450);
     });
 }
 
@@ -280,6 +311,7 @@ async function init()
     document.getElementById("clearConsoleButton").onclick = clearConsole;
     disableTerminalActivityIndicator();
 
+    GetSaveButton().disabled = true;
     SetDefaultDocument();
 
     if (!gUploadEnabled) 
