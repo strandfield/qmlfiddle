@@ -11,6 +11,7 @@ var ini = require('ini');
 var fs = require('fs');
 
 var indexRouter = require('./routes/index');
+const { parseMaxFiddleSize } = require("./src/utils");
 
 var app = express();
 
@@ -92,7 +93,6 @@ function parseConf() {
 
 const defaultConf = {
   features: {
-    uploadEnabled: true, // TODO: add option to allow upload only for registeredUser
     signup: true
   },
   fiddles: {
@@ -113,35 +113,13 @@ if (conf?.hashingSalt) {
 console.log(`hashingSalt = ${hashingSalt}`);
 app.locals.hashingSalt = hashingSalt;
 
-let uploadEnabled = true;
-if (conf?.features?.upload != undefined) {
-  uploadEnabled = conf.features.upload
-}
-
 let signupEnabled = defaultConf.features.signup;
 if (conf?.features?.signup != undefined) {
   signupEnabled = conf.features.signup
 }
 
-function parseMaxFiddleSize(value)  {
-  if (typeof value == 'number') {
-    return value;
-  }
-
-  if (value.endsWith('kb')) {
-    return parseInt(value.substring(0, value.length - 2)) * 1024;
-  } else if (value.endsWith('b')) {
-    return parseInt(value.substring(0, value.length - 1));
-  } else {
-    const r = parseInt(value);
-    console.assert(r != NaN, "invalid value for conf 'fiddle size' field");
-    return r;
-  }
-}
-
 app.locals.conf = {
   features: {
-    uploadEnabled: uploadEnabled,
     signup: signupEnabled
   },
   fiddles: {
@@ -151,9 +129,7 @@ app.locals.conf = {
   }
 };
 
-if (app.locals.conf.features.uploadEnabled) {
-  console.log("fiddle upload is enabled");
-}
+console.log(app.locals.conf);
 
 const { getOrCreateFiddleDatabase } = require("./src/db");
 const db = getOrCreateFiddleDatabase(DataDir);

@@ -100,6 +100,7 @@ class UserManager
     }
 
     updateUser(userId, username, email, password) {
+        // TODO: reset emailVerified if email changed ?
         const salt = crypto.randomBytes(saltLength);
         const hashed_password = crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, pbkdf2Keylen, pbkdf2Algorithm);
         let stmt = this.database.prepare(`UPDATE user SET username = ?, email = ?, hashedPassword = ?, salt = ? WHERE id = ?`);

@@ -2,6 +2,7 @@ extends layout
 
 block content
     h1 Admin
+
     h2 Signups
     p Signups enabled: #{conf.features.signup}.
     div(class="d-flex gap-3")
@@ -9,12 +10,25 @@ block content
             button(type="submit", class="btn btn-primary") Enable
         form(action="/admin/disable/signup", method="post")
             button(type="submit", class="btn btn-primary") Disable
+
+    h2 Fiddle size limits
+    form(action="/admin/update/limits/fiddle", method="post")
+        section(class="mb-3 d-flex gap-2 align-items-center")
+            label(for="unregistered", class="form-label") Unregistered:
+            input(class="form-control", name="unregistered", type="text", required, value=`${conf.fiddles.maxFiddleSizeUnregistered}`)
+            label(for="unverified", class="form-label") Unverified:
+            input(class="form-control", name="unverified", type="text", required, value=`${conf.fiddles.maxFiddleSizeUnverified}`)
+            label(for="verified", class="form-label") Verified:
+            input(class="form-control", name="verified", type="text", required, value=`${conf.fiddles.maxFiddleSizeVerified}`)
+        button(type="submit", class="btn btn-primary") Update
+
     h2 Delete fiddle 
     form(action="/admin/delete/fiddle", method="post")
         section(class="mb-3")
             label(for="fiddleId", class="form-label") Fiddle ID 
             input(class="form-control", name="fiddleId", type="text", required)
         button(type="submit", class="btn btn-primary") Delete
+
     h2 Delete user 
     form(action="/admin/delete/user", method="post")
         section(class="mb-3")

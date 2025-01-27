@@ -6,9 +6,6 @@ const { getUserMaxFiddleSize } = require("../src/utils")
 
 function GetSiteInfo(req, res, next) {
   res.json({
-    features: {
-      upload: req.app.locals.conf.features.uploadEnabled
-    },
     fiddles: req.app.locals.conf.fiddles
   });
 }
@@ -50,7 +47,7 @@ function PostFiddle(req, res, next) {
     title = title.substring(0, max_title_length);
   }
 
-  if (!content) {
+  if (!content || content.length == 0) {
     return res.json({
       accepted: false,
       message: "missing content"
@@ -58,10 +55,11 @@ function PostFiddle(req, res, next) {
   }
 
   const max_length = getUserMaxFiddleSize(req.user, req.app.locals.conf);
-  if (max_length > 0 && content.length > max_length) {
+  if (max_length >= 0 && content.length > max_length) {
     return res.json({
       accepted: false,
-      message: "fiddle too big"
+      message: "fiddle too big",
+      maxLength: max_length
     });
   }
 
@@ -91,13 +89,6 @@ function PostFiddle(req, res, next) {
   } 
   else 
   {
-    if (!req.app.locals.conf.features.uploadEnabled) {
-      return res.json({
-        accepted: false,
-        message: "no new fiddle can be created"
-      });
-    }
-
     let fiddle = manager.createFiddle(title, content);
     if (fiddle && req.user) {
       manager.setFiddleAuthorId(fiddle.id, req.user.id);

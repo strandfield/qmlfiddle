@@ -186,7 +186,7 @@ function SetDefaultDocument() {
 
 var gCodeEditorLimitIndicator = null;
 function GetOrCreateCodeEditorLimitIndicator() {
-    if (!gCodeEditorLimitIndicator) {
+    if (!gCodeEditorLimitIndicator && gUploadEnabled) {
         const code = document.getElementById("code");
         gCodeEditorLimitIndicator = document.createElement('DIV');
         gCodeEditorLimitIndicator.id = "editor-char-limit-indicator";
@@ -199,6 +199,10 @@ function GetOrCreateCodeEditorLimitIndicator() {
 
 function UpdateCodeEditorLimitIndicator() {
     let elem = GetOrCreateCodeEditorLimitIndicator();
+    if (!elem) {
+        return;
+    }
+
     const n = gCodeEditor.state.doc.length;
     elem.innerText = `${n} / ${gMaxFiddleSize}`;
 

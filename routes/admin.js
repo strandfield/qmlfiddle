@@ -1,6 +1,6 @@
 var express = require('express');
 
-const { isSuperUser } = require("../src/utils");
+const { isSuperUser, parseMaxFiddleSize } = require("../src/utils");
 
 var router = express.Router();
 
@@ -62,10 +62,31 @@ function DisableSignups(req, res, next) {
   res.redirect("/admin");
 }
 
+function UpdateFiddleSizeLimits(req, res, next) {
+  if (!isSuperUser(req.user)) {
+    return res.redirect("/");
+  }
+
+  if (req.body.unregistered) {
+    req.app.locals.conf.fiddles.maxFiddleSizeUnregistered = parseMaxFiddleSize(req.body.unregistered);
+  }
+
+  if (req.body.unverified) {
+    req.app.locals.conf.fiddles.maxFiddleSizeUnverified = parseMaxFiddleSize(req.body.unverified);
+  }
+
+  if (req.body.verified) {
+    req.app.locals.conf.fiddles.maxFiddleSizeVerified = parseMaxFiddleSize(req.body.verified);
+  }
+
+  res.redirect("/admin");
+}
+
 router.get('/admin', GetAdminPage);
 router.post('/admin/delete/fiddle', DeleteFiddle);
 router.post('/admin/delete/user', DeleteUser);
 router.post('/admin/enable/signup', EnableSignups);
 router.post('/admin/disable/signup', DisableSignups);
+router.post("/admin/update/limits/fiddle", UpdateFiddleSizeLimits);
 
 module.exports = router;
