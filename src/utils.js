@@ -17,7 +17,12 @@ function mapFiddleIds(list) {
     }
 }
 
+function isSuperUser(user) {
+    return user != null && user.superUser;
+}
+
 module.exports = { 
     getUserMaxFiddleSize,
-    mapFiddleIds
+    mapFiddleIds,
+    isSuperUser
 };

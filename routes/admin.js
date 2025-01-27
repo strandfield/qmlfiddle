@@ -1,9 +1,11 @@
 var express = require('express');
 
+const { isSuperUser } = require("../src/utils");
+
 var router = express.Router();
 
 function GetAdminPage(req, res, next) {
-  if (!req.user || !req.user.superUser) {
+  if (!isSuperUser(req.user)) {
     return res.redirect("/");
   }
 
@@ -15,7 +17,7 @@ function GetAdminPage(req, res, next) {
 
 // TODO: merge with DeleteFiddle() from index.js ?
 function DeleteFiddle(req, res, next) {
-  if (!req.user || !req.user.superUser) {
+  if (!isSuperUser(req.user)) {
     return res.redirect("/");
   }
 
@@ -26,7 +28,7 @@ function DeleteFiddle(req, res, next) {
 }
 
 function DeleteUser(req, res, next) {
-  if (!req.user || !req.user.superUser) {
+  if (!isSuperUser(req.user)) {
     return res.redirect("/");
   }
 
@@ -41,7 +43,7 @@ function DeleteUser(req, res, next) {
 }
 
 function EnableSignups(req, res, next) {
-  if (!req.user || !req.user.superUser) {
+  if (!isSuperUser(req.user)) {
     return res.redirect("/");
   }
 
@@ -51,7 +53,7 @@ function EnableSignups(req, res, next) {
 }
 
 function DisableSignups(req, res, next) {
-  if (!req.user || !req.user.superUser) {
+  if (!isSuperUser(req.user)) {
     return res.redirect("/");
   }
 
