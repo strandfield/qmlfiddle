@@ -112,10 +112,29 @@ function enableTerminalActivityIndicator() {
     }
 }
 
+function GetRunButton() {
+    return document.getElementById("runButton");
+}
+
+function setRunButtonEnabled(enabled = true) {
+    let btn = GetRunButton();
+    btn.disabled = !enabled;
+    btn = btn.nextElementSibling;
+    btn.disabled = !enabled;
+}
+
+function disableRunButton() {
+    setRunButtonEnabled(false);
+}
+
+function enableRunButton() {
+    setRunButtonEnabled(true);
+}
+
 var autoRunActivated = true;
 
 function setAutorunActivated(active = true) {
-    document.getElementById("runButton").innerText = active ? "Auto Run" : "Run";
+    GetRunButton().innerText = active ? "Auto Run" : "Run";
     autoRunActivated = active;
 }
 
@@ -222,7 +241,7 @@ function UpdateSaveButtonState() {
     if (n > gMaxFiddleSize) {
         GetSaveButton().disabled = true;
     } else if(GetSaveButton().disabled) {
-        GetSaveButton().disabled = gNumberOfChanges < gMinChangesForSave;
+        GetSaveButton().disabled = gNumberOfChanges < gMinChangesForSave || !qtInstance;
     }
 }
 
@@ -299,7 +318,8 @@ async function init()
     hideDevTools();
     document.getElementById("devtoolsButton").onclick = toggleDevTools;
     document.getElementById("clearConsoleButton").onclick = clearConsole;
-    document.getElementById("runButton").onclick = compileAndRun;
+    disableRunButton();
+    GetRunButton().onclick = compileAndRun;
     document.getElementById("activateAutorunLink").onclick = (event) => {
         event.preventDefault();
         setAutorunActivated(true);
@@ -385,6 +405,8 @@ async function init()
             writeConsole("[info] QML engine is ready.", dont_notify);
 
             UpdateCodeEditorLimitIndicator();
+
+            enableRunButton();
         }
 
         GetSaveButton().onclick = SaveFiddle;
