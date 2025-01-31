@@ -29,7 +29,9 @@ function setupPassport(userManager) {
 var router = express.Router();
 
 router.get('/login', function(req, res, next) {
-  res.render('login');
+  res.render('login', {
+    title: 'Sign in - QML Fiddle'
+  });
 });
 
 router.get('/signup', function(req, res, next) {
