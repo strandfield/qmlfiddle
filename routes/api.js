@@ -1,18 +1,12 @@
 
-const Database = require('better-sqlite3');
-
 var express = require('express');
 
-var fs = require('fs');
+const { getUserMaxFiddleSize } = require("../src/utils")
+
 
 function GetSiteInfo(req, res, next) {
   res.json({
-    features: {
-      upload: req.app.locals.conf.features.uploadEnabled
-    },
-    limits: {
-      maxFiddleSize: req.app.locals.conf.limits.maxFiddleSize
-    }
+    fiddles: req.app.locals.conf.fiddles
   });
 }
 
@@ -53,18 +47,19 @@ function PostFiddle(req, res, next) {
     title = title.substring(0, max_title_length);
   }
 
-  if (!content) {
+  if (!content || content.length == 0) {
     return res.json({
       accepted: false,
       message: "missing content"
     });
   }
 
-  const max_length = req.app.locals.conf.limits.maxFiddleSize;
-  if (max_length > 0 && content.length > max_length) {
+  const max_length = getUserMaxFiddleSize(req.user, req.app.locals.conf);
+  if (max_length >= 0 && content.length > max_length) {
     return res.json({
       accepted: false,
-      message: "fiddle too big"
+      message: "fiddle too big",
+      maxLength: max_length
     });
   }
 
@@ -88,20 +83,16 @@ function PostFiddle(req, res, next) {
     }
 
     const fiddle = manager.updateFiddle(id, title, content);
-    console.assert(fiddle != null, "update must no fail");
+    console.assert(fiddle != null, "update must not fail");
 
     result.editKey = manager.getFiddleEditKey(fiddle);
   } 
   else 
   {
-    if (!req.app.locals.conf.features.uploadEnabled) {
-      return res.json({
-        accepted: false,
-        message: "no new fiddle can be created"
-      });
-    }
-
     let fiddle = manager.createFiddle(title, content);
+    if (fiddle && req.user) {
+      manager.setFiddleAuthorId(fiddle.id, req.user.id);
+    }
     id = fiddle.id.toString(16);
     result.editKey = manager.getFiddleEditKey(fiddle);
   }

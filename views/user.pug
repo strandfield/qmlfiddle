@@ -1,0 +1,21 @@
+extends layout
+
+block content
+    h1 User #{targetUser.username}
+
+    h2 Fiddles 
+    p Here is a list of all fiddles created by #{targetUser.username}.
+    table 
+        tbody 
+            tr 
+                th ID 
+                th Title
+            each fiddle in targetUserFiddles 
+                tr 
+                    td
+                        a(href=`/${fiddle.id}`)= fiddle.id
+                    td 
+                        if fiddle.title != ""
+                            span= fiddle.title
+                        else 
+                            span Untitled fiddle

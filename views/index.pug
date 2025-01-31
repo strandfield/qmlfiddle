@@ -1,0 +1,82 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content="width=device-width, height=device-height, user-scalable=0")
+    title= title
+    link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css", rel="stylesheet", integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH", crossorigin="anonymous")
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/index.css')
+    script(src="editorbundle.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js", integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz", crossorigin="anonymous")
+    script.
+      var gFiddleId = "#{defaultDocument.id.toString(16)}";
+      var gMaxFiddleSize = #{maxFiddleSize};
+      var gUploadEnabled = gMaxFiddleSize == -1 || gMaxFiddleSize > 0;
+  body(onload="init()")
+    div(id="layout-container")
+      header(id="header") 
+        a(href="/")
+          img(src="/favicon.ico", class="d-block") 
+        div(class="flex-grow-1")
+          input(type="text", id="titleInput", name="title", placeholder="Untitled fiddle", value=defaultDocument.title)
+        div(id="runButtonGroup" class="btn-group")
+          button(type="button", id="runButton" class="btn btn-warning btn-sm") Auto Run
+          button(type="button", class="btn btn-warning dropdown-toggle dropdown-toggle-split btn-sm", data-bs-toggle="dropdown", aria-expanded="false")
+            span(class="visually-hidden") Toggle Dropdown
+          ul(class="dropdown-menu")
+            li
+              a(id="deactivateAutorunLink", class="dropdown-item", href="#") Run
+            li
+              a(id="activateAutorunLink", class="dropdown-item", href="#") Auto Run
+        ul(id="actions")
+          li 
+            input(type="button", id="saveButton", class="btn btn-light btn-sm action-btn", value="Save")
+          li
+            input(type="button", id="forkButton", class="btn btn-light btn-sm action-btn", value="Fork")
+          if user 
+            li
+              a(href="/account", title="Account")
+                img(width="26", src="/images/account.svg")
+          else 
+            li 
+              a(href="/login", class="btn btn-success btn-sm action-btn") Sign in
+      main(id="content")
+        div(id="maincontent", class="splith")
+          div(id="code")
+            pre(style="display: none;")= defaultDocument.content
+          div(id="screen")
+            div(id="screen-overlay")
+              div(id="qtspinner")
+                strong Qt for WebAssembly: qmlfiddle
+                div(id="qtstatus")
+                noscript JavaScript is disabled. Please enable JavaScript to use this application.
+        div(id="devtools")
+          div(id="devtools-header")
+            div(id="devtools-header-button", selected="true") 
+              div(style="margin-top: 0.4ex;") Output
+          div(id="devtools-console")
+            div(id="console-controls")
+              a(id="clearConsoleButton", href="#", title="Clear")
+                img(width="16", src="/images/trash.svg")
+            div(id="console-output")
+      footer(id="footer") 
+        ul(class="hmenu", style="margin-left: 1em;")
+          li
+            a(href="/documentation.html", title="Documentation") Documentation
+        ul(class="hmenu", style="margin-left: auto; margin-right: 1em;")
+          li
+            a(id="devtoolsButton", href="#", title="Show/Hide DevTools", style="position: relative;")
+              img(width="16", src="/images/terminal.svg", style="position: relative;")
+              img(id="terminalActivityIndicator", width="8", src="/images/red-circle.svg", style="position: absolute; right: -4px; top: 0px;")
+          li
+            a(href="/privacy.html", title="Privacy policy")
+              img(width="16", src="/images/biscuit.svg")
+          li
+            a(href="https://github.com/strandfield/qmlfiddle")
+              img(width="16", src="/images/github-mark-white.svg")
+    script(type="text/javascript", src="javascripts/index.js")
+    script(src="qmlfiddle.js")
+    script(type="text/javascript", src="qtloader.js")

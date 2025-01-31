@@ -1,11 +1,14 @@
 
-
 class FiddleManager
 {
     constructor(db) {
         this.database = db;
 
         this.projects = {};
+
+        this.maxFiddleId = 10000000;
+        this.userMinFiddleId = 4096;
+        this.editKeySalt = Math.random().toString();
     }
 
     getDatabase() {
@@ -22,7 +25,7 @@ class FiddleManager
 
     getFiddleById(fiddleId) {
         fiddleId = this.#unwrap(fiddleId);
-        let stmt = this.database.prepare(`SELECT id, title, content FROM fiddle WHERE id = ?`);
+        let stmt = this.database.prepare(`SELECT id, title, content, authorId, dateCreated, dateModified FROM fiddle WHERE id = ?`);
         return stmt.get(fiddleId);
     }
 
@@ -39,29 +42,28 @@ class FiddleManager
 
     #generateFiddleId() {
         // note: we may increase the maxid as we go along
-        const maxid = 10000000; // TODO: put that value into conf
+        const maxid = this.maxFiddleId;
         return 1 + Math.trunc(Math.random() * maxid);
     }
 
-    #generatePepper() {
-        const maxvalue = 2000000000;
-        return 1 + Math.trunc(Math.random() * maxvalue);
+    getCurrentTimestamp() {
+        return Math.floor(Date.now() / 1000);
     }
 
     createFiddle(title, content) {
         let id = this.#generateFiddleId();
-        while (this.getFiddleById(id) != undefined) {
+        while (id < this.userMinFiddleId || this.getFiddleById(id) != undefined) {
             id = this.#generateFiddleId();
         }
 
-        const pepper = this.#generatePepper();
-        let stmt = this.database.prepare(`INSERT INTO fiddle(id, title, content, pepper) VALUES(?,?,?,?)`);
-        const info = stmt.run(id, title, content, pepper);
+        const ts = this.getCurrentTimestamp();
+        let stmt = this.database.prepare(`INSERT INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
+        const info = stmt.run(id, title, content, ts);
         return {
             id: info.lastInsertRowid,
-            pepper: pepper,
             title: title,
-            content: content
+            content: content,
+            dateCreated: ts
         };
     }
 
@@ -69,36 +71,36 @@ class FiddleManager
         console.assert(typeof fiddleObject == 'object' && fiddleObject != null);
         const crypto = require('crypto')
         let shasum = crypto.createHash('sha1');
+        shasum.update(fiddleObject.id.toString());
         shasum.update(fiddleObject.title);
-        shasum.update(fiddleObject.content);
-        // TODO: add salt? (note: does not need to be shared with wasm)
-        shasum.update(fiddleObject.pepper.toString());
+        if (fiddleObject.dateModified) {
+            shasum.update(fiddleObject.dateModified.toString());
+        } else {
+            shasum.update(fiddleObject.dateCreated.toString());
+        }
+        shasum.update(fiddleObject.title);
+        shasum.update(this.editKeySalt);
         const sha1 = shasum.digest('hex');
         return sha1;
     }
 
     getFiddleEditKey(fiddleIdOrObject) {
         if (typeof fiddleIdOrObject == 'object') {
-            let fiddle = fiddleIdOrObject;
-            if (fiddle.pepper == undefined) {
-                fiddle = this.getFiddleByIdEx(fiddle.id, ["title", "content", "pepper"]);
-                console.assert(fiddle != undefined);
-            }
-            return this.#computeEditKey(fiddle);
+            return this.#computeEditKey(fiddleIdOrObject);
         } else {
-            const fiddle = this.getFiddleByIdEx(fiddleIdOrObject, ["title", "content", "pepper"]);
+            const fiddle = this.getFiddleByIdEx(fiddleIdOrObject, ["id", "title", "dateCreated", "dateModified"]);
             if (fiddle == undefined) {
                 return undefined;
             }
             return this.getFiddleEditKey(fiddle);
         }
     }
-
+    
     updateFiddle(id, title, content) {
         id = this.#unwrap(id);
-        const pepper = this.#generatePepper();
-        let stmt = this.database.prepare(`UPDATE fiddle SET title = ?, content = ?, pepper = ? WHERE id = ?`);
-        const info = stmt.run(title, content, pepper, id);
+        const timestamp = this.getCurrentTimestamp();
+        let stmt = this.database.prepare(`UPDATE fiddle SET title = ?, content = ?, dateModified = ? WHERE id = ?`);
+        const info = stmt.run(title, content, timestamp, id);
 
         if (info.changes != 1) {
             return null;
@@ -108,8 +110,71 @@ class FiddleManager
             id: id,
             title: title,
             content: content,
-            pepper: pepper
+            dateModified: timestamp
         };
+    }
+
+    insertOrUpdateFiddle(id, title, content) {
+        id = this.#unwrap(id);
+        let stmt = this.database.prepare(`INSERT OR IGNORE INTO fiddle(id, title, content, dateCreated) VALUES(?,?,?,?)`);
+        let info = stmt.run(id, title, content, this.getCurrentTimestamp());
+
+        if (!info.lastInsertRowid) {
+            this.updateFiddle(id, title, content);
+        }
+    }
+
+    deleteFiddle(id) {
+        id = this.#unwrap(id);
+        let stmt = this.database.prepare(`DELETE FROM fiddle WHERE id = ?`);
+        stmt.run(id);
+    }
+
+    setFiddleAuthorId(id, authorId) {
+        let stmt = this.database.prepare(`UPDATE fiddle SET authorId = ? WHERE id = ?`);
+        const info = stmt.run(authorId, id);
+        return info.changes == 1;
+    }
+
+    getFiddlesByAuthorId(authorId) {
+        let stmt = this.database.prepare(`SELECT id, title, dateCreated FROM fiddle WHERE authorId = ? ORDER BY dateCreated DESC`);
+        return stmt.all(authorId);
+    }
+
+    loadFiddlesFromDirectory(dirPath, userId = null) {
+        const path = require('path');
+        const fs = require('node:fs');
+
+        const entries = fs.readdirSync(dirPath);
+
+        for (const fileName of entries) {
+            if (!fileName.endsWith(".qml") || fileName == "default.qml") {
+                continue;
+            }
+
+            const name_wo_ext = path.basename(fileName, ".qml");
+            const id = Number.parseInt(name_wo_ext, 16);
+
+            if (id === NaN) {
+                console.error(`could not parse fiddle id ${name_wo_ext}`);
+                continue;
+            }
+
+            const filepath = path.join(dirPath, fileName);
+            let content = fs.readFileSync(filepath, 'utf-8');
+            let title = "";
+            if (content.startsWith("//")) {
+                let i = content.indexOf("\n");
+                title = content.substring(2, i).trim();
+                content = content.substring(i+1);
+            }
+
+            this.insertOrUpdateFiddle(id, title, content);
+
+            if (userId) {
+                this.setFiddleAuthorId(id, userId);
+            }
+        }
     }
 };
 

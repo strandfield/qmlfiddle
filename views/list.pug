@@ -7,6 +7,8 @@ block content
       tr 
         th ID 
         th Title
+        if user && user.superUser 
+          th Author
       each fiddle in fiddles 
         tr 
           td
@@ -16,5 +18,11 @@ block content
               span= fiddle.title
             else 
               span Untitled fiddle
+          if user && user.superUser 
+            td 
+              if fiddle.author 
+                a(href=`/u/${fiddle.author.username}`)= fiddle.author.username
+              else 
+                span unknown
   p Total: #{fiddles.length} fiddles.
 

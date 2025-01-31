@@ -1,0 +1,6 @@
+[submodule "resources/vscode-icons"]
+	path = resources/vscode-icons
+	url = https://github.com/microsoft/vscode-icons.git
+[submodule "codemirror-lang-qml"]
+	path = codemirror-lang-qml
+	url = https://github.com/strandfield/codemirror-lang-qml.git

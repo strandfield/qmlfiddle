@@ -6,8 +6,9 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import QmlFiddle
+
 Rectangle {
-
-    color: '#cccccc'
-
+    color: QmlFiddle.backgroundColor
+    z: -1
 }

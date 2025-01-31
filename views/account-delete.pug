@@ -1,0 +1,23 @@
+extends layout
+
+block content
+    h1 Delete my account
+    p.
+        You are about to delete your account.
+        This operation cannot be undone.
+    p.
+        The following elements will be deleted: 
+    ul 
+        li All your fiddles 
+        li All your personal information (username, email).
+    p.
+        Please fill-in the form below before clicking on the delete button.
+    form(action="/account/delete", method="post")
+        section(class="mb-3") 
+            label(for="username", class="form-label") Username
+            input(id="username", class="form-control", name="username", type="text", autocomplete="username", required)
+            small(class="form-text text-muted") Type #[b #{user.username}] in the username field.
+        section(class="mb-3") 
+            label(for="current-password", class="form-label") Password 
+            input(id="current-password", class="form-control", name="password", type="password", autocomplete="current-password", placeholder="Enter password", required)
+        button(class="btn btn-danger btn-sm action-btn", type="submit") Delete my account permanently
